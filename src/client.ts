@@ -9,7 +9,7 @@ import {
 } from './types';
 
 export interface Fetcher {
-  (request: Request, requestInit: RequestInit): Promise<Response>;
+  (url: string, requestInit?: RequestInit): Promise<Response>;
 }
 
 type ClientOptions = {

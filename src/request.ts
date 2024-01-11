@@ -1,176 +1,123 @@
 import {
-  EmptyObject,
-  Simplify,
   IsEmptyObject,
   IsNever,
   IsUnknown,
+  HasRequiredKeys,
+  ValueOf,
 } from 'type-fest';
 import {
   BodyOf,
   PathParamsOf,
   QueryParamsOf,
   ResponseOf,
-  TestPathsGet,
   TestPathsPost,
 } from './types';
 
-type OverrideMethods<Path, MethodsUsed extends string> = {
-  __path(
-    params: Record<string, any>
-  ): NextOwnedRequest<Path, MethodsUsed | 'path'>;
-  __query(
-    params: Record<string, any>
-  ): NextOwnedRequest<Path, MethodsUsed | 'query'>;
-  __body(
-    params: Record<string, any>
-  ): NextOwnedRequest<Path, MethodsUsed | 'body'>;
-};
-
 type ShouldDiscard<T> = IsEmptyObject<T> | IsNever<T> | IsUnknown<T>;
 
-type RequestPathParamsMissing<
-  Path,
-  MethodsUsed extends string
-> = true extends ShouldDiscard<PathParamsOf<Path>>
-  ? Pick<OverrideMethods<Path, MethodsUsed>, '__path'>
-  : {
-      path(params: PathParamsOf<Path>): any;
-    };
+type MethodsToFilter<Path> =
+  | (true extends ShouldDiscard<PathParamsOf<Path>> ? 'path' : never)
+  | (true extends ShouldDiscard<QueryParamsOf<Path>> ? 'query' : never)
+  | (true extends ShouldDiscard<BodyOf<Path>> ? 'body' : never);
 
-type RequestQueryParamsMissing<
-  Path,
-  MethodsUsed extends string
-> = true extends ShouldDiscard<QueryParamsOf<Path>>
-  ? Pick<OverrideMethods<Path, MethodsUsed>, '__query'>
-  : {
-      query(params: QueryParamsOf<Path>): any;
-    };
-
-type RequestBodyMissing<
-  Path,
-  MethodsUsed extends string
-> = true extends ShouldDiscard<BodyOf<Path>>
-  ? Pick<OverrideMethods<Path, MethodsUsed>, '__body'>
-  : {
-      body(body: BodyOf<Path>): any;
-    };
-
-type RequestBuilt<Path> = {
-  send(): Promise<ResponseOf<Path>>;
-};
-
-type OwnedRequestMethods<Path, MethodsUsed extends string> = Simplify<
-  RequestPathParamsMissing<Path, MethodsUsed> &
-    RequestQueryParamsMissing<Path, MethodsUsed> &
-    RequestBodyMissing<Path, MethodsUsed>
+type MethodsRemaining<Path, UsedMethods extends string> = Exclude<
+  keyof OwnedRequest<Path, UsedMethods>,
+  'send' | MethodsToFilter<Path> | UsedMethods | `__${UsedMethods}`
 >;
 
-type NextOwnedRequest<Path, MethodsUsed extends string> = Omit<
-  OwnedRequestMethods<Path, MethodsUsed>,
-  MethodsUsed | `__${MethodsUsed}` | `__${string}`
-> extends EmptyObject
-  ? Omit<
-      RequestBuilt<Path> & OverrideMethods<Path, MethodsUsed>,
-      MethodsUsed | `__${MethodsUsed}`
+type OptionalMethods<Path> = ValueOf<{
+  [Method in keyof Omit<
+    OwnedRequest<Path, ''>,
+    'send' | MethodsToFilter<Path>
+  > as OwnedRequest<Path, ''>[Method] extends object
+    ? HasRequiredKeys<
+        Parameters<OwnedRequest<Path, ''>[Method]>[number]
+      > extends true
+      ? never
+      : Method
+    : never]: Method;
+}>;
+
+type NextOwnedRequest<Path, UsedMethods extends string> = Exclude<
+  MethodsRemaining<Path, UsedMethods>,
+  `__${string}` | OptionalMethods<Path>
+> extends never
+  ? Pick<
+      OwnedRequest<Path, UsedMethods>,
+      MethodsRemaining<Path, UsedMethods> | 'send'
     >
-  : Omit<
-      OwnedRequestMethods<Path, MethodsUsed>,
-      MethodsUsed | `__${MethodsUsed}`
-    >;
+  : Pick<OwnedRequest<Path, UsedMethods>, MethodsRemaining<Path, UsedMethods>>;
 
-type PathTestTest = PathParamsOf<TestPathsPost['/pet']>;
-type PathTest = RequestPathParamsMissing<TestPathsPost['/pet'], ''>;
-type QueryTest = RequestQueryParamsMissing<TestPathsPost['/pet'], ''>;
-type BodyTest = RequestBodyMissing<TestPathsPost['/pet'], ''>;
-
-type TestOne = OwnedRequestMethods<TestPathsPost['/pet'], ''>;
-type TestTwo = OwnedRequestMethods<TestPathsPost['/pet/{petId}'], ''>;
-
-type TestNext = NextOwnedRequest<TestPathsPost['/pet/{petId}'], 'path'>;
-
-type OwnedRequestState = {
+interface OwnedRequestState {
   _pathParams: Record<string, any>;
   _queryParams: Record<string, any>;
   _body: any;
-};
+}
 
-class OwnedRequest<Path, MethodsUsed extends string = ''> {
+class OwnedRequest<Path, UsedMethods extends string = ''> {
   private _pathParams: Record<string, any> = {};
   private _queryParams: Record<string, any> = {};
   private _body: any;
-  private _send: () => Promise<ResponseOf<Path>>;
 
-  constructor(send: () => Promise<any>) {
+  private _send: (state: OwnedRequestState) => Promise<ResponseOf<Path>>;
+
+  constructor(send: (state: OwnedRequestState) => Promise<ResponseOf<Path>>) {
     this._send = send;
+    return this;
   }
 
   path(
-    this: OwnedRequestMethods<Path, MethodsUsed> & OwnedRequestState,
     params: PathParamsOf<Path>
-  ) {
+  ): NextOwnedRequest<Path, UsedMethods | 'path'> {
     if (params) {
       this._pathParams = params;
     }
-    return this as unknown as NextOwnedRequest<Path, MethodsUsed | 'path'> &
-      OwnedRequestState;
+    return this as NextOwnedRequest<Path, UsedMethods | 'path'>;
   }
 
-  __path(
-    this: OwnedRequestMethods<Path, MethodsUsed> & OwnedRequestState,
-    params: Record<string, any>
-  ) {
+  __path(params: Record<string, any>) {
     this._pathParams = params;
-    return this as NextOwnedRequest<Path, MethodsUsed | 'path'> &
-      OwnedRequestState;
+    return this as NextOwnedRequest<Path, UsedMethods | 'path'>;
   }
 
-  query(
-    this: OwnedRequestMethods<Path, MethodsUsed> & OwnedRequestState,
-    params: QueryParamsOf<Path>
-  ) {
+  query(params: QueryParamsOf<Path>) {
     if (params) {
       this._queryParams = params;
     }
-    return this as NextOwnedRequest<Path, MethodsUsed | 'query'> &
-      OwnedRequestState;
+    return this as NextOwnedRequest<Path, UsedMethods | 'query'>;
   }
 
-  __query(
-    this: OwnedRequestMethods<Path, MethodsUsed> & OwnedRequestState,
-    params: Record<string, any>
-  ) {
+  __query(params: Record<string, any>) {
     this._queryParams = params;
-    return this as NextOwnedRequest<Path, MethodsUsed | 'query'> &
-      OwnedRequestState;
+    return this as NextOwnedRequest<Path, UsedMethods | 'query'>;
   }
 
-  body(
-    this: OwnedRequestMethods<Path, MethodsUsed> & OwnedRequestState,
-    body: BodyOf<Path>
-  ) {
+  body(body: BodyOf<Path>) {
     if (body) {
       this._body = body;
     }
-    return this as NextOwnedRequest<Path, MethodsUsed | 'body'> &
-      OwnedRequestState;
+    return this as NextOwnedRequest<Path, UsedMethods | 'body'>;
   }
 
-  __body(
-    this: OwnedRequestMethods<Path, MethodsUsed> & OwnedRequestState,
-    body: any
-  ) {
-    this._body = body;
-    return this as NextOwnedRequest<Path, MethodsUsed | 'body'> &
-      OwnedRequestState;
+  __body(body: any) {
+    if (body) {
+      this._body = body;
+    }
+    return this as NextOwnedRequest<Path, UsedMethods | 'body'>;
   }
 
   send() {
-    return this._send();
+    return this._send({
+      _pathParams: this._pathParams,
+      _queryParams: this._queryParams,
+      _body: this._body,
+    });
   }
 }
 
-const request = new OwnedRequest<TestPathsPost['/pet/{petId}']>(() =>
-  fetch('/')
+const request = new OwnedRequest<TestPathsPost['/pet/{petId}']>(
+  ({}) => fetch('/') as any
 );
 
-const test = await request.path({ petId: 1 }).query({ name: '' }).send();
+const test = await request.query({ name: '' }).path({ petId: 1 }).send();
+const data = await test.json();
