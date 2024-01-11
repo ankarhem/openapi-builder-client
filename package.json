@@ -10,5 +10,9 @@
   },
   "scripts": {
     "generate": "npx openapi-typescript https://petstore3.swagger.io/api/v3/openapi.json --output ./openapi/petstore.ts"
+  },
+  "dependencies": {
+    "neverthrow": "^6.1.0",
+    "type-fest": "^4.9.0"
   }
 }
