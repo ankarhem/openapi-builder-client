@@ -9,10 +9,10 @@ import {
 } from './types';
 
 export class OwnedRequest<Path, UsedMethods extends string = ''> {
-  private _pathParams: Record<string, any> = {};
+  private _pathParams: Record<string, string> = {};
   private _queryParams: Record<string, any> = {};
-  private _headers: Record<string, any> = {};
-  private _body: any;
+  private _headers: Record<string, string> = {};
+  private _body: Record<string, any> = {};
 
   private _send: (state: OwnedRequestState) => Promise<ResponseOf<Path>>;
 
@@ -34,7 +34,7 @@ export class OwnedRequest<Path, UsedMethods extends string = ''> {
     return this as NextOwnedRequest<Path, UsedMethods | 'path'>;
   }
 
-  __path(params: Record<string, any>) {
+  __path(params: Record<string, string>) {
     this._pathParams = params;
     return this as NextOwnedRequest<Path, UsedMethods | 'path'>;
   }
@@ -58,7 +58,7 @@ export class OwnedRequest<Path, UsedMethods extends string = ''> {
     return this as NextOwnedRequest<Path, UsedMethods | 'body'>;
   }
 
-  __body(body: any) {
+  __body(body: Record<string, any>) {
     if (body) {
       this._body = body;
     }
@@ -72,7 +72,7 @@ export class OwnedRequest<Path, UsedMethods extends string = ''> {
     return this as NextOwnedRequest<Path, UsedMethods | 'headers'>;
   }
 
-  __headers(headers: HeaderParamsOf<Path>) {
+  __headers(headers: Record<string, string>) {
     if (headers) {
       this._headers = headers;
     }

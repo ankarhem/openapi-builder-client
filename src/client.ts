@@ -37,13 +37,24 @@ class Client<OpenAPIPaths> {
       path = path.replace(`{${key}}`, value);
     }
 
-    const searchParams = new URLSearchParams(state._queryParams);
+    const searchParams = new URLSearchParams();
+    for (const [key, value] of Object.entries(state._queryParams)) {
+      if (Array.isArray(value)) {
+        for (let item in value) {
+          searchParams.append(key, item);
+        }
+        continue;
+      }
+
+      searchParams.append(key, value);
+    }
     if (searchParams.size > 0) {
       path += `?${searchParams.toString()}`;
     }
 
     return this.options.fetcher(path, {
-      body: state._body,
+      body: Object.keys(state._body).length === 0 ? undefined : state._body,
+      headers: state._headers,
     });
   }
 
