@@ -1,4 +1,3 @@
-import { paths } from '../openapi/petstore';
 import { OwnedRequest } from './request';
 import {
   ClientOptions,
@@ -11,7 +10,7 @@ import {
   ResponseOf,
 } from './types';
 
-class Client<OpenAPIPaths> {
+export class Client<OpenAPIPaths> {
   private options: ClientOptions;
   constructor(options: ClientOptions) {
     this.options = options;
@@ -114,8 +113,3 @@ class Client<OpenAPIPaths> {
     return ownedRequest.__withDynamicTyping();
   }
 }
-
-const client = new Client<paths>({
-  fetcher: fetch,
-  baseUrl: 'https://petstore3.swagger.io',
-});
