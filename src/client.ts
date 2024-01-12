@@ -1,42 +1,110 @@
 import { paths } from '../openapi/petstore';
+import { OwnedRequest } from './request';
 import {
+  ClientOptions,
   DeletePaths,
   GetPaths,
+  OwnedRequestState,
   PatchPaths,
   PostPaths,
   PutPaths,
   ResponseOf,
 } from './types';
 
-export interface Fetcher {
-  (url: string, requestInit?: RequestInit): Promise<Response>;
-}
-
-type ClientOptions = {
-  fetcher: Fetcher;
-};
-
 class Client<OpenAPIPaths> {
-  private fetcher: Fetcher;
-  constructor({ fetcher }: ClientOptions) {
-    this.fetcher = fetcher;
+  private options: ClientOptions;
+  constructor(options: ClientOptions) {
+    this.options = options;
   }
 
-  get<Path extends keyof GetPaths<OpenAPIPaths>>(
-    path: Path
-  ): ResponseOf<GetPaths<OpenAPIPaths>[Path]> {
-    throw new Error('not implemented');
+  /**
+   *  Override default ClientOptions configuration
+   * @param options {ClientOptions}
+   */
+  with(options: Partial<ClientOptions>) {
+    return new Client<OpenAPIPaths>({
+      ...this.options,
+      ...options,
+    });
   }
-  post<Path extends keyof PostPaths<OpenAPIPaths>>(
-    path: Path
-  ): ResponseOf<PostPaths<OpenAPIPaths>[Path]> {
-    throw new Error('not implemented');
+
+  private send<Path extends keyof OpenAPIPaths>(
+    _path: Path,
+    state: OwnedRequestState
+  ) {
+    let path = _path as string;
+    for (const [key, value] of Object.entries(state._pathParams)) {
+      path = path.replace(`{${key}}`, value);
+    }
+
+    const searchParams = new URLSearchParams(state._queryParams);
+    if (searchParams.size > 0) {
+      path += `?${searchParams.toString()}`;
+    }
+
+    return this.options.fetcher(path, {
+      body: state._body,
+    });
+  }
+
+  get<PathString extends keyof GetPaths<OpenAPIPaths>>(path: PathString) {
+    const boundSend: any = (state: OwnedRequestState) => {
+      return this.send(path, state) as Promise<
+        ResponseOf<PostPaths<PathString>>
+      >;
+    };
+    const ownedRequest = new OwnedRequest<GetPaths<OpenAPIPaths>[PathString]>(
+      boundSend
+    );
+    return ownedRequest.__withDynamicTyping();
+  }
+  post<PathString extends keyof PostPaths<OpenAPIPaths>>(path: PathString) {
+    const boundSend = (state: OwnedRequestState) => {
+      return this.send(path, state) as Promise<
+        ResponseOf<PostPaths<PathString>>
+      >;
+    };
+    const ownedRequest = new OwnedRequest<PostPaths<OpenAPIPaths>[PathString]>(
+      boundSend
+    );
+    return ownedRequest.__withDynamicTyping();
+  }
+  put<PathString extends keyof PutPaths<OpenAPIPaths>>(path: PathString) {
+    const boundSend = (state: OwnedRequestState) => {
+      return this.send(path, state) as Promise<
+        ResponseOf<PostPaths<PathString>>
+      >;
+    };
+    const ownedRequest = new OwnedRequest<PutPaths<OpenAPIPaths>[PathString]>(
+      boundSend
+    );
+    return ownedRequest.__withDynamicTyping();
+  }
+  delete<PathString extends keyof DeletePaths<OpenAPIPaths>>(path: PathString) {
+    const boundSend = (state: OwnedRequestState) => {
+      return this.send(path, state) as Promise<
+        ResponseOf<PostPaths<PathString>>
+      >;
+    };
+    const ownedRequest = new OwnedRequest<
+      DeletePaths<OpenAPIPaths>[PathString]
+    >(boundSend);
+    return ownedRequest.__withDynamicTyping();
+  }
+  patch<PathString extends keyof PatchPaths<OpenAPIPaths>>(path: PathString) {
+    const boundSend = (state: OwnedRequestState) => {
+      return this.send(path, state) as Promise<
+        ResponseOf<PostPaths<PathString>>
+      >;
+    };
+    const ownedRequest = new OwnedRequest<PatchPaths<OpenAPIPaths>[PathString]>(
+      boundSend
+    );
+    return ownedRequest.__withDynamicTyping();
   }
 }
 
 const client = new Client<paths>({
   fetcher: fetch,
+  baseUrl: 'https://petstore3.swagger.io',
 });
-
-const response = client.get('/pet/{petId}');
-const response2 = client.post('/pet/{petId}');
