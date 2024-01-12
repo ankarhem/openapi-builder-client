@@ -1,4 +1,4 @@
-# ts-fetch
+# openapi-builder-client
 
 To install dependencies:
 
