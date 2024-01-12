@@ -1,5 +1,6 @@
 {
-  "name": "ts-fetch",
+  "name": "openapi-builder-client",
+  "version": "0.1.0",
   "module": "index.ts",
   "type": "module",
   "devDependencies": {
@@ -13,7 +14,6 @@
     "typecheck": "tsc -b"
   },
   "dependencies": {
-    "neverthrow": "^6.1.0",
     "type-fest": "^4.9.0"
   }
 }
