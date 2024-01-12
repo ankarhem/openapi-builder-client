@@ -4,7 +4,8 @@
   "module": "index.ts",
   "type": "module",
   "devDependencies": {
-    "bun-types": "latest"
+    "bun-types": "latest",
+    "type-fest": "^4.9.0"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
@@ -12,8 +13,5 @@
   "scripts": {
     "postinstall": "npx openapi-typescript https://petstore3.swagger.io/api/v3/openapi.json --output ./openapi/petstore.ts",
     "typecheck": "tsc -b"
-  },
-  "dependencies": {
-    "type-fest": "^4.9.0"
   }
 }
