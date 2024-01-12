@@ -4,6 +4,8 @@ import {
   IsUnknown,
   HasRequiredKeys,
   ValueOf,
+  RequiredKeysOf,
+  IfNever,
 } from 'type-fest';
 import {
   BodyOf,
@@ -16,27 +18,21 @@ import {
 type ShouldDiscard<T> = IsEmptyObject<T> | IsNever<T> | IsUnknown<T>;
 
 type MethodsToFilter<Path> =
+  | 'send'
+  | '__withDynamicTyping'
   | (true extends ShouldDiscard<PathParamsOf<Path>> ? 'path' : never)
   | (true extends ShouldDiscard<QueryParamsOf<Path>> ? 'query' : never)
   | (true extends ShouldDiscard<BodyOf<Path>> ? 'body' : never);
 
 type MethodsRemaining<Path, UsedMethods extends string> = Exclude<
   keyof OwnedRequest<Path, UsedMethods>,
-  'send' | MethodsToFilter<Path> | UsedMethods | `__${UsedMethods}`
+  MethodsToFilter<Path> | UsedMethods | `__${UsedMethods}`
 >;
 
-type OptionalMethods<Path> = ValueOf<{
-  [Method in keyof Omit<
-    OwnedRequest<Path, ''>,
-    'send' | MethodsToFilter<Path>
-  > as OwnedRequest<Path, ''>[Method] extends object
-    ? HasRequiredKeys<
-        Parameters<OwnedRequest<Path, ''>[Method]>[number]
-      > extends true
-      ? never
-      : Method
-    : never]: Method;
-}>;
+type OptionalMethods<Path> =
+  | IfNever<RequiredKeysOf<Required<PathParamsOf<Path>>>, 'path', never>
+  | IfNever<RequiredKeysOf<Required<QueryParamsOf<Path>>>, 'query', never>
+  | IfNever<RequiredKeysOf<Required<BodyOf<Path>>>, 'body', never>;
 
 type NextOwnedRequest<Path, UsedMethods extends string> = Exclude<
   MethodsRemaining<Path, UsedMethods>,
@@ -64,6 +60,10 @@ class OwnedRequest<Path, UsedMethods extends string = ''> {
   constructor(send: (state: OwnedRequestState) => Promise<ResponseOf<Path>>) {
     this._send = send;
     return this;
+  }
+
+  __withDynamicTyping() {
+    return this as NextOwnedRequest<Path, UsedMethods>;
   }
 
   path(
@@ -118,6 +118,3 @@ class OwnedRequest<Path, UsedMethods extends string = ''> {
 const request = new OwnedRequest<TestPathsPost['/pet/{petId}']>(
   ({}) => fetch('/') as any
 );
-
-const test = await request.query({ name: '' }).path({ petId: 1 }).send();
-const data = await test.json();
