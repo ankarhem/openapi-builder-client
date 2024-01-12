@@ -51,7 +51,8 @@ export class Client<OpenAPIPaths> {
       path += `?${searchParams.toString()}`;
     }
 
-    return this.options.fetcher(path, {
+    const url = new URL(path, this.options.baseUrl);
+    return this.options.fetcher(url.toString(), {
       body: Object.keys(state._body).length === 0 ? undefined : state._body,
       headers: state._headers,
     });
