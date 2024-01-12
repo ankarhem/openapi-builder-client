@@ -9,7 +9,7 @@ import {
 } from './types';
 
 export class OwnedRequest<Path, UsedMethods extends string = ''> {
-  private _pathParams: Record<string, string> = {};
+  private _pathParams: Record<string, string | number> = {};
   private _queryParams: Record<string, any> = {};
   private _headers: Record<string, string> = {};
   private _body: Record<string, any> = {};
@@ -34,7 +34,7 @@ export class OwnedRequest<Path, UsedMethods extends string = ''> {
     return this as NextOwnedRequest<Path, UsedMethods | 'path'>;
   }
 
-  __path(params: Record<string, string>) {
+  __path(params: Record<string, string | number>) {
     this._pathParams = params;
     return this as NextOwnedRequest<Path, UsedMethods | 'path'>;
   }

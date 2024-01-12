@@ -33,7 +33,7 @@ export class Client<OpenAPIPaths> {
   ) {
     let path = _path as string;
     for (const [key, value] of Object.entries(state._pathParams)) {
-      path = path.replace(`{${key}}`, value);
+      path = path.replace(`{${key}}`, value.toString());
     }
 
     const searchParams = new URLSearchParams();
