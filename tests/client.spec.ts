@@ -1,17 +1,11 @@
 import type { paths } from '../openapi/petstore';
 import { Client } from '../src';
-import { expect, test, describe } from 'bun:test';
-
-const client = new Client<paths>({
-  baseUrl: 'https://petstore3.swagger.io/api/v3',
-  fetcher: fetch,
-  headers: {
-    'x-hello': 'world',
-  },
-});
+import { expect, test, describe, mock, Mock } from 'bun:test';
+import { MiddlewareFunction } from '../src/types';
+import { mockedClient } from './utils';
 
 describe('Can use all methods', () => {
-  const anyClient = client as any;
+  const anyClient = mockedClient as any;
   test('GET', async () => {
     anyClient
       .with({
@@ -70,6 +64,7 @@ describe('Can use all methods', () => {
 });
 
 describe('Correctly constructs url', () => {
+  const client = mockedClient;
   test('Can handle baseUrl with path', async () => {
     client
       .with({
@@ -112,6 +107,11 @@ describe('Correctly constructs url', () => {
 });
 
 describe('Headers', () => {
+  const client = mockedClient.with({
+    headers: {
+      'x-hello': 'world',
+    },
+  });
   test('Can set default headers', async () => {
     client
       .with({
@@ -210,6 +210,7 @@ describe('Headers', () => {
 });
 
 describe('Body', () => {
+  const client = mockedClient;
   test('Can set json body', async () => {
     client
       .with({
@@ -245,5 +246,74 @@ describe('Body', () => {
         test: 1,
       })
       .send();
+  });
+});
+
+describe('Middleware', () => {
+  const middleware = mock((url, init, next) => {
+    return next(url, init);
+  });
+  const client = mockedClient.with({
+    middlewares: [middleware],
+  });
+
+  test('Can add middleware', async () => {
+    expect(middleware).toHaveBeenCalledTimes(0);
+    await client.get('/pet/findByStatus').send();
+    expect(middleware).toHaveBeenCalledTimes(1);
+  });
+
+  test('Can modify request with middleware', async () => {
+    const middleware: Mock<MiddlewareFunction> = mock((url, init, next) => {
+      const body = 'bodyString';
+      return next('https://google.com', {
+        ...init,
+        headers: {
+          ...init.headers,
+          'x-middleware': 'yes',
+        },
+        body: body,
+      });
+    });
+    await client
+      .with({
+        middlewares: [middleware],
+        fetcher: async (url, init) => {
+          expect(init?.body).toBe('bodyString');
+          expect(init?.headers).toEqual({
+            'x-middleware': 'yes',
+          });
+          return new Response();
+        },
+      })
+      .get('/pet/findByStatus')
+      .send();
+    expect(middleware).toHaveBeenCalledTimes(1);
+  });
+
+  test('Middleware are run in sequence', async () => {
+    const firstMiddleware: Mock<MiddlewareFunction> = mock(
+      (url, init, next) => {
+        return next('https://first.com', init);
+      }
+    );
+    const secondMiddleware: Mock<MiddlewareFunction> = mock(
+      (url, init, next) => {
+        expect(url).toBe('https://first.com');
+        return next('https://second.com', init);
+      }
+    );
+    await client
+      .with({
+        middlewares: [firstMiddleware, secondMiddleware],
+        fetcher: async (url, init) => {
+          expect(url).toBe('https://second.com');
+          return new Response();
+        },
+      })
+      .get('/pet/findByStatus')
+      .send();
+    expect(firstMiddleware).toHaveBeenCalledTimes(1);
+    expect(secondMiddleware).toHaveBeenCalledTimes(1);
   });
 });

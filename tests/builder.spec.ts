@@ -1,18 +1,19 @@
 import type { paths } from '../openapi/petstore';
 import { Client } from '../src';
 import { test } from 'bun:test';
-
-const client = new Client<paths>({
-  baseUrl: 'https://google.com',
-  fetcher: fetch,
-});
+import { mockedClient } from './utils';
 
 test('Exposes all override methods by default', () => {
-  client.get('/pet/{petId}').__path({}).__query({}).__headers({}).__body({});
+  mockedClient
+    .get('/pet/{petId}')
+    .__path({})
+    .__query({})
+    .__headers({})
+    .__body({});
 });
 
 test('Using a method removes method and override method', () => {
-  const request = client.get('/pet/{petId}').path({ petId: 1 });
+  const request = mockedClient.get('/pet/{petId}').path({ petId: 1 });
 
   // @ts-expect-error
   request.__path({});
@@ -21,7 +22,7 @@ test('Using a method removes method and override method', () => {
   request.__body({}).__headers({}).__query({});
 });
 test('Using an override method removes method and override method', () => {
-  const request = client.get('/pet/{petId}').__path({ petId: 1 });
+  const request = mockedClient.get('/pet/{petId}').__path({ petId: 1 });
 
   // @ts-expect-error
   request.__path({});
@@ -31,7 +32,7 @@ test('Using an override method removes method and override method', () => {
 });
 
 test('Send only visible when all required methods used', () => {
-  const request = client.get('/pet/{petId}');
+  const request = mockedClient.get('/pet/{petId}');
 
   // @ts-expect-error
   request.send();

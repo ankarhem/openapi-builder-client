@@ -2,6 +2,7 @@ import { OwnedRequest } from './request';
 import {
   ClientOptions,
   DeletePaths,
+  Fetcher,
   GetPaths,
   Method,
   OwnedRequestState,
@@ -28,7 +29,37 @@ export class Client<OpenAPIPaths> {
         ...this.options.headers,
         ...options.headers,
       },
+      middlewares: [
+        ...(this.options.middlewares || []),
+        ...(options.middlewares || []),
+      ],
     });
+  }
+
+  private createWrappedFetch(): (
+    url: string,
+    init: RequestInit
+  ) => Promise<Response> {
+    if (!this.options.middlewares) return this.options.fetcher;
+
+    const middlewareHandler = async (
+      index: number,
+      url: string,
+      init: RequestInit
+    ): ReturnType<typeof this.options.fetcher> => {
+      if (
+        !this.options.middlewares ||
+        index === this.options.middlewares.length
+      ) {
+        return this.options.fetcher(url, init);
+      }
+      const current = this.options.middlewares?.[index];
+      return await current(url, init, (nextUrl, nextInit) =>
+        middlewareHandler(index + 1, nextUrl, nextInit!)
+      );
+    };
+
+    return (url: string, init: RequestInit) => middlewareHandler(0, url, init);
   }
 
   private send<Path extends keyof OpenAPIPaths>(
@@ -58,15 +89,20 @@ export class Client<OpenAPIPaths> {
 
     const baseUrl = new URL(this.options.baseUrl);
     const combinedPath = (baseUrl.pathname + path).replace('//', '/');
-    const url = new URL(combinedPath, this.options.baseUrl);
-    return this.options.fetcher(url.toString(), {
+
+    const url = new URL(combinedPath, this.options.baseUrl).toString();
+    const init: RequestInit = {
       method: method,
       body: Object.keys(state._body).length === 0 ? undefined : state._body,
       headers: {
         ...this.options.headers,
         ...state._headers,
       },
-    }) as Promise<any>;
+    };
+
+    const fetchWithMiddleware = this.createWrappedFetch();
+
+    return fetchWithMiddleware(url.toString(), init) as Promise<any>;
   }
 
   get<PathString extends keyof GetPaths<OpenAPIPaths>>(path: PathString) {

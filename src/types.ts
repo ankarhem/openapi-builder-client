@@ -66,14 +66,21 @@ export type BodyOf<Path> = ValueOf<Get<Path, 'requestBody.content'>>;
 
 /** Client */
 export interface Fetcher {
-  (url: string, requestInit?: RequestInit): Promise<Response>;
+  (url: string, init?: RequestInit): Promise<Response>;
 }
 
 export type ClientOptions = {
   fetcher: Fetcher;
   baseUrl: string;
   headers?: Record<string, string>;
+  middlewares?: MiddlewareFunction[];
 };
+
+export type MiddlewareFunction = (
+  url: string,
+  init: RequestInit,
+  next: Fetcher
+) => ReturnType<Fetcher>;
 
 /** Request */
 type ShouldDiscard<T> = IsEmptyObject<T> | IsNever<T> | IsUnknown<T>;
