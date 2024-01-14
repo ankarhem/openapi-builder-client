@@ -2,7 +2,6 @@ import { OwnedRequest } from './request';
 import {
   ClientOptions,
   DeletePaths,
-  Fetcher,
   GetPaths,
   Method,
   OwnedRequestState,
@@ -42,24 +41,39 @@ export class Client<OpenAPIPaths> {
   ) => Promise<Response> {
     if (!this.options.middlewares) return this.options.fetcher;
 
-    const middlewareHandler = async (
-      index: number,
+    const fetchWithRetries = (
       url: string,
-      init: RequestInit
+      init: RequestInit,
+      retries: number = 0
+    ): ReturnType<typeof this.options.fetcher> => {
+      try {
+        return this.options.fetcher(url, init);
+      } catch (error) {
+        if (retries < (this.options.retries || 0)) {
+          return fetchWithRetries(url, init, retries + 1);
+        }
+        throw error;
+      }
+    };
+
+    const middlewareHandler = async (
+      url: string,
+      init: RequestInit,
+      index: number = 0
     ): ReturnType<typeof this.options.fetcher> => {
       if (
         !this.options.middlewares ||
         index === this.options.middlewares.length
       ) {
-        return this.options.fetcher(url, init);
+        return fetchWithRetries(url, init);
       }
       const current = this.options.middlewares?.[index];
       return await current(url, init, (nextUrl, nextInit) =>
-        middlewareHandler(index + 1, nextUrl, nextInit!)
+        middlewareHandler(nextUrl, nextInit!, index + 1)
       );
     };
 
-    return (url: string, init: RequestInit) => middlewareHandler(0, url, init);
+    return (url: string, init: RequestInit) => middlewareHandler(url, init);
   }
 
   private send<Path extends keyof OpenAPIPaths>(

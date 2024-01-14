@@ -1,8 +1,8 @@
 import { expect, test, describe, mock, Mock } from 'bun:test';
 import { mockedClient } from './utils';
-import { MiddlewareFunction } from '../src';
+import { Fetcher, MiddlewareFunction } from '../src';
 
-describe('Can use all methods', () => {
+describe('Methods', () => {
   const anyClient = mockedClient as any;
   test('GET', async () => {
     anyClient
@@ -61,7 +61,7 @@ describe('Can use all methods', () => {
   });
 });
 
-describe('Correctly constructs url', () => {
+describe('Url', () => {
   const client = mockedClient;
   test('Can handle baseUrl with path', async () => {
     client
@@ -249,7 +249,7 @@ describe('Body', () => {
 
 describe('Middleware', () => {
   test('Can add middleware', async () => {
-    const middleware = mock((url, init, next) => {
+    const middleware: Mock<MiddlewareFunction> = mock((url, init, next) => {
       return next(url, init);
     });
     const client = mockedClient.with({
@@ -312,5 +312,44 @@ describe('Middleware', () => {
       .send();
     expect(firstMiddleware).toHaveBeenCalledTimes(1);
     expect(secondMiddleware).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('Retries', () => {
+  const throwingFetcher: Fetcher = (url, init) => {
+    throw new Error('');
+  };
+
+  test('Can will retry if request throws', async () => {
+    const mockedThrowingFetcher: Mock<Fetcher> = mock(throwingFetcher);
+    const client = mockedClient.with({
+      fetcher: mockedThrowingFetcher,
+      retries: 1,
+    });
+    expect(mockedThrowingFetcher).toHaveBeenCalledTimes(0);
+    await client
+      .get('/pet/findByStatus')
+      .send()
+      .catch(() => {});
+    expect(mockedThrowingFetcher).toHaveBeenCalledTimes(2);
+  });
+
+  test('Middlewares are only called once', async () => {
+    const middleware: Mock<MiddlewareFunction> = mock((url, init, next) => {
+      return next(url, init);
+    });
+
+    const client = mockedClient.with({
+      middlewares: [middleware],
+      fetcher: throwingFetcher,
+      retries: 1,
+    });
+
+    expect(middleware).toHaveBeenCalledTimes(0);
+    await client
+      .get('/pet/findByStatus')
+      .send()
+      .catch(() => {});
+    expect(middleware).toHaveBeenCalledTimes(1);
   });
 });

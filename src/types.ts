@@ -74,6 +74,7 @@ export type ClientOptions = {
   baseUrl: string;
   headers?: Record<string, string>;
   middlewares?: MiddlewareFunction[];
+  retries?: number;
 };
 
 export type MiddlewareFunction = (
