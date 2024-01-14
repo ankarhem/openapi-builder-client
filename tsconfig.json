@@ -2,10 +2,10 @@
   "compilerOptions": {
     "lib": ["ESNext"],
     "module": "esnext",
-    "target": "esnext",
+    "target": "ES2015",
     "moduleResolution": "bundler",
     "moduleDetection": "force",
-    "allowImportingTsExtensions": true,
+    // "allowImportingTsExtensions": true,
     "noEmit": true,
     "composite": true,
     "strict": true,
@@ -17,6 +17,10 @@
     "allowJs": true,
     "types": [
       "bun-types" // add Bun global
-    ]
-  }
+    ],
+    "outDir": "./dist",
+    "declarationMap": true,
+    "sourceMap": true
+  },
+  "include": ["src"]
 }

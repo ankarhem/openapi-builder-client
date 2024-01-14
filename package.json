@@ -1,17 +1,42 @@
 {
   "name": "openapi-builder-client",
   "version": "0.1.0",
-  "module": "index.ts",
+  "license": "MIT",
   "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "src"
+  ],
+  "exports": {
+    ".": "./dist/src/index.js"
+  },
   "devDependencies": {
     "bun-types": "latest",
     "type-fest": "^4.9.0"
   },
   "peerDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "type-fest": "^4.9.0"
   },
   "scripts": {
     "postinstall": "npx openapi-typescript https://petstore3.swagger.io/api/v3/openapi.json --output ./openapi/petstore.ts",
-    "typecheck": "tsc -b"
-  }
+    "typecheck": "tsc -b",
+    "build": "tsc --noEmit false"
+  },
+  "author": {
+    "name": "Jakob Ankarhem",
+    "url": "https://github.com/ankarhem",
+    "email": "jakob@ankarhem.dev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ankarhem/openapi-builder-client"
+  },
+  "keywords": [
+    "openapi",
+    "typescript",
+    "fetch",
+    "client"
+  ]
 }
