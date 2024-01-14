@@ -250,14 +250,13 @@ describe('Body', () => {
 });
 
 describe('Middleware', () => {
-  const middleware = mock((url, init, next) => {
-    return next(url, init);
-  });
-  const client = mockedClient.with({
-    middlewares: [middleware],
-  });
-
   test('Can add middleware', async () => {
+    const middleware = mock((url, init, next) => {
+      return next(url, init);
+    });
+    const client = mockedClient.with({
+      middlewares: [middleware],
+    });
     expect(middleware).toHaveBeenCalledTimes(0);
     await client.get('/pet/findByStatus').send();
     expect(middleware).toHaveBeenCalledTimes(1);
@@ -275,7 +274,7 @@ describe('Middleware', () => {
         body: body,
       });
     });
-    await client
+    await mockedClient
       .with({
         middlewares: [middleware],
         fetcher: async (url, init) => {
@@ -303,7 +302,7 @@ describe('Middleware', () => {
         return next('https://second.com', init);
       }
     );
-    await client
+    await mockedClient
       .with({
         middlewares: [firstMiddleware, secondMiddleware],
         fetcher: async (url, init) => {
