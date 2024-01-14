@@ -1,8 +1,6 @@
-import type { paths } from '../openapi/petstore';
-import { Client } from '../src';
 import { expect, test, describe, mock, Mock } from 'bun:test';
-import { MiddlewareFunction } from '../src/types';
 import { mockedClient } from './utils';
+import { MiddlewareFunction } from '../src';
 
 describe('Can use all methods', () => {
   const anyClient = mockedClient as any;

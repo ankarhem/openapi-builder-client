@@ -15,6 +15,7 @@ pnpm add -D typescript@^5.0.0 type-fest@^4.9.0
 - [x] Typed
 - [x] Overrideable config per request
 - [x] Builder pattern
+- [x] Middlewares
 - [x] JSON
 - [ ] XML
 - [ ] Form encoding

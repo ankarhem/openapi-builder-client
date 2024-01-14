@@ -1,3 +1,3 @@
 export { Client } from './client';
-import { Fetcher, ClientOptions } from './types';
-export type { Fetcher, ClientOptions };
+import { Fetcher, ClientOptions, MiddlewareFunction } from './types';
+export type { Fetcher, ClientOptions, MiddlewareFunction };

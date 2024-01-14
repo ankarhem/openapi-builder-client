@@ -1,5 +1,3 @@
-import type { paths } from '../openapi/petstore';
-import { Client } from '../src';
 import { test } from 'bun:test';
 import { mockedClient } from './utils';
 
