@@ -70,6 +70,7 @@ export interface Fetcher {
 export type ClientOptions = {
   fetcher: Fetcher;
   baseUrl: string;
+  headers?: Record<string, string>;
 };
 
 /** Request */

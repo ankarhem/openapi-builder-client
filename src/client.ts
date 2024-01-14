@@ -7,7 +7,6 @@ import {
   PatchPaths,
   PostPaths,
   PutPaths,
-  ResponseOf,
 } from './types';
 
 export class Client<OpenAPIPaths> {
@@ -54,62 +53,40 @@ export class Client<OpenAPIPaths> {
     const url = new URL(path, this.options.baseUrl);
     return this.options.fetcher(url.toString(), {
       body: Object.keys(state._body).length === 0 ? undefined : state._body,
-      headers: state._headers,
-    });
+      headers: {
+        ...this.options.headers,
+        ...state._headers,
+      },
+    }) as Promise<any>;
   }
 
   get<PathString extends keyof GetPaths<OpenAPIPaths>>(path: PathString) {
-    const boundSend: any = (state: OwnedRequestState) => {
-      return this.send(path, state) as Promise<
-        ResponseOf<PostPaths<PathString>>
-      >;
-    };
     const ownedRequest = new OwnedRequest<GetPaths<OpenAPIPaths>[PathString]>(
-      boundSend
+      this.send.bind(this, path)
     );
     return ownedRequest.__withDynamicTyping();
   }
   post<PathString extends keyof PostPaths<OpenAPIPaths>>(path: PathString) {
-    const boundSend = (state: OwnedRequestState) => {
-      return this.send(path, state) as Promise<
-        ResponseOf<PostPaths<PathString>>
-      >;
-    };
     const ownedRequest = new OwnedRequest<PostPaths<OpenAPIPaths>[PathString]>(
-      boundSend
+      this.send.bind(this, path)
     );
     return ownedRequest.__withDynamicTyping();
   }
   put<PathString extends keyof PutPaths<OpenAPIPaths>>(path: PathString) {
-    const boundSend = (state: OwnedRequestState) => {
-      return this.send(path, state) as Promise<
-        ResponseOf<PostPaths<PathString>>
-      >;
-    };
     const ownedRequest = new OwnedRequest<PutPaths<OpenAPIPaths>[PathString]>(
-      boundSend
+      this.send.bind(this, path)
     );
     return ownedRequest.__withDynamicTyping();
   }
   delete<PathString extends keyof DeletePaths<OpenAPIPaths>>(path: PathString) {
-    const boundSend = (state: OwnedRequestState) => {
-      return this.send(path, state) as Promise<
-        ResponseOf<PostPaths<PathString>>
-      >;
-    };
     const ownedRequest = new OwnedRequest<
       DeletePaths<OpenAPIPaths>[PathString]
-    >(boundSend);
+    >(this.send.bind(this, path));
     return ownedRequest.__withDynamicTyping();
   }
   patch<PathString extends keyof PatchPaths<OpenAPIPaths>>(path: PathString) {
-    const boundSend = (state: OwnedRequestState) => {
-      return this.send(path, state) as Promise<
-        ResponseOf<PostPaths<PathString>>
-      >;
-    };
     const ownedRequest = new OwnedRequest<PatchPaths<OpenAPIPaths>[PathString]>(
-      boundSend
+      this.send.bind(this, path)
     );
     return ownedRequest.__withDynamicTyping();
   }
