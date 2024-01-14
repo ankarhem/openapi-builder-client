@@ -11,6 +11,8 @@ import {
 } from 'type-fest';
 import { OwnedRequest } from './request';
 
+export type Method = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+
 /** OpenAPI Helpers */
 type OmitNever<T> = ConditionalExcept<T, never>;
 
