@@ -24,6 +24,10 @@ export class Client<OpenAPIPaths> {
     return new Client<OpenAPIPaths>({
       ...this.options,
       ...options,
+      headers: {
+        ...this.options.headers,
+        ...options.headers,
+      },
     });
   }
 

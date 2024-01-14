@@ -17,10 +17,6 @@
     "allowJs": true,
     "types": [
       "bun-types" // add Bun global
-    ],
-    "outDir": "./dist",
-    "declarationMap": true,
-    "sourceMap": true
-  },
-  "include": ["src"]
+    ]
+  }
 }
