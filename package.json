@@ -22,6 +22,7 @@
   },
   "scripts": {
     "postinstall": "npx openapi-typescript https://petstore3.swagger.io/api/v3/openapi.json --output ./openapi/petstore.ts",
+    "prepublishOnly": "bun test && bun run build",
     "typecheck": "tsc -b",
     "build": "tsc --noEmit false"
   },
