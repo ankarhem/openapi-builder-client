@@ -2,8 +2,13 @@
 
 ## To Install
 
-Runtime has no dependencies and is very small (~1.68kb minified).
+Runtime has no dependencies and is very small (`~1.68kb` minified).
 For types to work you need `typescript` and `type-fest`.
+
+```bash
+pnpm add openapi-builder-client
+pnpm add -D typescript@^5.0.0 type-fest@^4.9.0
+```
 
 ## Functionality
 
@@ -14,11 +19,6 @@ For types to work you need `typescript` and `type-fest`.
 - [ ] XML
 - [ ] Form encoding
 - [ ] Streams
-
-```bash
-pnpm add openapi-builder-client
-pnpm add -D typescript@^5.0.0 type-fest@^4.9.0
-```
 
 ## Contribute
 
