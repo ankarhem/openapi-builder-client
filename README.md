@@ -2,7 +2,7 @@
 
 ## To Install
 
-Runtime has no dependencies and is very small.
+Runtime has no dependencies and is very small (~1.68kb minified).
 For types to work you need `typescript` and `type-fest`.
 
 ## Functionality
