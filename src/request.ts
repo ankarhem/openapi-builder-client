@@ -1,4 +1,3 @@
-import { Primitive } from 'type-fest';
 import {
   JsonBodyOf,
   HeaderParamsOf,
@@ -8,19 +7,27 @@ import {
   QueryParamsOf,
   ResponseOf,
   FormDataOf,
+  ClientOptions,
 } from './types';
 
 type BodyMethods = 'body' | 'form';
 
 export class OwnedRequest<Path, UsedMethods extends string = ''> {
-  private _pathParams: OwnedRequestState['_pathParams'] = {};
-  private _queryParams: OwnedRequestState['_queryParams'] = {};
-  private _headers: OwnedRequestState['_headers'] = {};
-  private _body: OwnedRequestState['_body'] = undefined;
+  private state: OwnedRequestState = {
+    path: {},
+    query: {},
+    headers: {},
+    body: undefined,
+  };
 
   private _send: (state: OwnedRequestState) => Promise<ResponseOf<Path>>;
+  private options: Required<Pick<ClientOptions, 'formBodyFormatter'>>;
 
-  constructor(send: (state: OwnedRequestState) => Promise<ResponseOf<Path>>) {
+  constructor(
+    send: (state: OwnedRequestState) => Promise<ResponseOf<Path>>,
+    options: Required<Pick<ClientOptions, 'formBodyFormatter'>>
+  ) {
+    this.options = options;
     this._send = send;
     return this;
   }
@@ -33,7 +40,7 @@ export class OwnedRequest<Path, UsedMethods extends string = ''> {
     params: PathParamsOf<Path>
   ): NextOwnedRequest<Path, UsedMethods | 'path'> {
     if (params) {
-      this._pathParams = params;
+      this.state.path = params;
     }
     return this as NextOwnedRequest<Path, UsedMethods | 'path'>;
   }
@@ -43,7 +50,7 @@ export class OwnedRequest<Path, UsedMethods extends string = ''> {
 
   query(params: QueryParamsOf<Path>) {
     if (params) {
-      this._queryParams = params;
+      this.state.query = params;
     }
     return this as NextOwnedRequest<Path, UsedMethods | 'query'>;
   }
@@ -53,8 +60,8 @@ export class OwnedRequest<Path, UsedMethods extends string = ''> {
 
   body(body: JsonBodyOf<Path>) {
     if (body) {
-      this._body = JSON.stringify(body);
-      this._headers['Content-Type'] = 'application/json';
+      this.state.body = JSON.stringify(body);
+      this.state.headers['Content-Type'] = 'application/json';
     }
     return this as NextOwnedRequest<Path, UsedMethods | BodyMethods>;
   }
@@ -64,8 +71,9 @@ export class OwnedRequest<Path, UsedMethods extends string = ''> {
 
   form(data: FormDataOf<Path>) {
     if (data) {
-      this._body = buildSearchParams(data);
-      this._headers['Content-Type'] = 'application/x-www-form-urlencoded';
+      const formData = this.options.formBodyFormatter(data);
+      this.state.body = new URLSearchParams(formData as any);
+      this.state.headers['Content-Type'] = 'application/x-www-form-urlencoded';
     }
     return this as NextOwnedRequest<Path, UsedMethods | BodyMethods>;
   }
@@ -75,8 +83,8 @@ export class OwnedRequest<Path, UsedMethods extends string = ''> {
 
   headers(headers: HeaderParamsOf<Path>) {
     if (headers) {
-      this._headers = {
-        ...this._headers,
+      this.state.headers = {
+        ...this.state.headers,
         ...headers,
       };
     }
@@ -87,39 +95,6 @@ export class OwnedRequest<Path, UsedMethods extends string = ''> {
   }
 
   send() {
-    return this._send({
-      _pathParams: this._pathParams,
-      _queryParams: this._queryParams,
-      _body: this._body,
-      _headers: this._headers,
-    });
+    return this._send(this.state);
   }
-}
-
-function buildSearchParams(
-  obj: Record<string, any> | Exclude<Primitive, symbol>,
-  params = new URLSearchParams(),
-  parentKey = ''
-) {
-  if (typeof obj === 'undefined' || !obj) return params;
-
-  if (Array.isArray(obj)) {
-    obj.forEach((element) => {
-      buildSearchParams(element, params, parentKey);
-    });
-    return params;
-  }
-
-  if (typeof obj === 'object') {
-    Object.keys(obj).forEach((key) => {
-      buildSearchParams(
-        obj[key],
-        params,
-        parentKey ? `${parentKey}.${key}` : key
-      );
-    });
-    return params;
-  }
-
-  params.append(parentKey, obj.toString());
 }

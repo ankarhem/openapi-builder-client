@@ -6,7 +6,7 @@ export class OwnedFetcher {
     this.sender = fetcher;
   }
 
-  withRetries(retries: number = 0) {
+  withRetries(retries: number) {
     if (retries <= 0) return this;
 
     const fetchWithRetries = async (
@@ -27,7 +27,7 @@ export class OwnedFetcher {
     return new OwnedFetcher(fetchWithRetries);
   }
 
-  withMiddlewares(middlewares: MiddlewareFunction[] = []) {
+  withMiddlewares(middlewares: MiddlewareFunction[]) {
     if (middlewares.length === 0) return this;
 
     const fetchWithMiddlewares = (

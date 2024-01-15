@@ -1,5 +1,7 @@
+import { SetRequired } from 'type-fest';
 import { OwnedFetcher } from './fetcher';
 import { OwnedRequest } from './request';
+import { defaultFormatter } from './search';
 import {
   ClientOptions,
   DeletePaths,
@@ -12,13 +14,21 @@ import {
 } from './types';
 
 export class Client<OpenAPIPaths> {
-  private options: ClientOptions;
+  private options: SetRequired<
+    ClientOptions,
+    'formBodyFormatter' | 'retries' | 'middlewares'
+  >;
   private ownedFetcher: OwnedFetcher;
   constructor(options: ClientOptions) {
-    this.options = options;
+    this.options = {
+      formBodyFormatter: defaultFormatter,
+      retries: 0,
+      middlewares: [],
+      ...options,
+    };
     this.ownedFetcher = new OwnedFetcher(options.fetcher)
-      .withRetries(options.retries)
-      .withMiddlewares(options.middlewares);
+      .withRetries(this.options.retries)
+      .withMiddlewares(this.options.middlewares);
   }
 
   /**
@@ -46,12 +56,12 @@ export class Client<OpenAPIPaths> {
     state: OwnedRequestState
   ) {
     let path = _path as string;
-    for (const [key, value] of Object.entries(state._pathParams)) {
+    for (const [key, value] of Object.entries(state.path)) {
       path = path.replace(`{${key}}`, value.toString());
     }
 
     const searchParams = new URLSearchParams();
-    for (const [key, value] of Object.entries(state._queryParams)) {
+    for (const [key, value] of Object.entries(state.query)) {
       if (Array.isArray(value)) {
         for (const item of value) {
           searchParams.append(key, item);
@@ -72,10 +82,10 @@ export class Client<OpenAPIPaths> {
 
     const init: RequestInit = {
       method: method,
-      body: state._body,
+      body: state.body,
       headers: {
         ...this.options.headers,
-        ...state._headers,
+        ...state.headers,
       },
     };
 
@@ -84,31 +94,35 @@ export class Client<OpenAPIPaths> {
 
   get<PathString extends keyof GetPaths<OpenAPIPaths>>(path: PathString) {
     const ownedRequest = new OwnedRequest<GetPaths<OpenAPIPaths>[PathString]>(
-      this.send.bind(this, 'GET', path)
+      this.send.bind(this, 'GET', path),
+      this.options
     );
     return ownedRequest.__withDynamicTyping();
   }
   post<PathString extends keyof PostPaths<OpenAPIPaths>>(path: PathString) {
     const ownedRequest = new OwnedRequest<PostPaths<OpenAPIPaths>[PathString]>(
-      this.send.bind(this, 'POST', path)
+      this.send.bind(this, 'POST', path),
+      this.options
     );
     return ownedRequest.__withDynamicTyping();
   }
   put<PathString extends keyof PutPaths<OpenAPIPaths>>(path: PathString) {
     const ownedRequest = new OwnedRequest<PutPaths<OpenAPIPaths>[PathString]>(
-      this.send.bind(this, 'PUT', path)
+      this.send.bind(this, 'PUT', path),
+      this.options
     );
     return ownedRequest.__withDynamicTyping();
   }
   delete<PathString extends keyof DeletePaths<OpenAPIPaths>>(path: PathString) {
     const ownedRequest = new OwnedRequest<
       DeletePaths<OpenAPIPaths>[PathString]
-    >(this.send.bind(this, 'DELETE', path));
+    >(this.send.bind(this, 'DELETE', path), this.options);
     return ownedRequest.__withDynamicTyping();
   }
   patch<PathString extends keyof PatchPaths<OpenAPIPaths>>(path: PathString) {
     const ownedRequest = new OwnedRequest<PatchPaths<OpenAPIPaths>[PathString]>(
-      this.send.bind(this, 'PATCH', path)
+      this.send.bind(this, 'PATCH', path),
+      this.options
     );
     return ownedRequest.__withDynamicTyping();
   }

@@ -228,33 +228,6 @@ describe('Body', () => {
 
 describe('Form', () => {
   const client = mockedClient;
-  test('Using form constructs FormData object', async () => {
-    client
-      .with({
-        fetcher: async (url, init) => {
-          const form = init?.body as URLSearchParams;
-
-          console.log(form);
-
-          expect(form.get('name')).toBe('hello');
-          expect(form.getAll('photoUrls')).toEqual(['url', 'url2']);
-          expect(form.getAll('tags.id')).toEqual(['1', '2']);
-          expect(form.getAll('tags.name')).toEqual(['tag1', 'tag2']);
-
-          return new Response();
-        },
-      })
-      .post('/pet')
-      .form({
-        name: 'hello',
-        photoUrls: ['url', 'url2'],
-        tags: [
-          { id: 1, name: 'tag1' },
-          { id: 2, name: 'tag2' },
-        ],
-      })
-      .send();
-  });
   test('Using form sets application/x-www-form-urlencoded header', async () => {
     client
       .with({

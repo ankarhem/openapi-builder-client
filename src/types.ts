@@ -79,12 +79,15 @@ export interface Fetcher {
   (url: string, init: RequestInit): Promise<Response>;
 }
 
+export type FormBodyFormatter = (body: Record<string, any>) => FormData;
+
 export type ClientOptions = {
   baseUrl: string;
   headers?: Record<string, string>;
   fetcher: Fetcher;
   middlewares?: MiddlewareFunction[];
   retries?: number;
+  formBodyFormatter?: FormBodyFormatter;
 };
 
 export type MiddlewareFunction = (
@@ -128,8 +131,8 @@ export type NextOwnedRequest<Path, UsedMethods extends string> = Exclude<
   : Pick<OwnedRequest<Path, UsedMethods>, MethodsRemaining<Path, UsedMethods>>;
 
 export interface OwnedRequestState {
-  _pathParams: Record<string, string | number>;
-  _queryParams: Record<string, string | readonly string[]>;
-  _headers: Record<string, string | readonly string[]>;
-  _body: RequestInit['body'];
+  path: Record<string, string | number>;
+  query: Record<string, string | readonly string[]>;
+  headers: Record<string, string | readonly string[]>;
+  body: RequestInit['body'];
 }
