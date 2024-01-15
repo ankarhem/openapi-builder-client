@@ -54,7 +54,9 @@ export type ResponseOf<Path> = Simplify<
       'status' | 'json'
     > & {
       status: Code;
-      json(): Promise<ValueOf<Get<Get<Path, 'responses'>[Code], 'content'>>>;
+      json(): Promise<
+        Get<Get<Path, 'responses'>[Code], 'content.application/json'>
+      >;
     };
   }[keyof Get<Path, 'responses'>]
 >;
@@ -62,7 +64,15 @@ export type ResponseOf<Path> = Simplify<
 export type PathParamsOf<Path> = Get<Path, 'parameters.path'>;
 export type QueryParamsOf<Path> = Get<Path, 'parameters.query'>;
 export type HeaderParamsOf<Path> = Get<Path, 'parameters.header'>;
-export type BodyOf<Path> = ValueOf<Get<Path, 'requestBody.content'>>;
+
+export type JsonBodyOf<Path> = Get<
+  Path,
+  'requestBody.content.application/json'
+>;
+export type FormDataOf<Path> = Get<
+  Path,
+  'requestBody.content.application/x-www-form-urlencoded'
+>;
 
 /** Client */
 export interface Fetcher {
@@ -92,7 +102,8 @@ type MethodsToFilter<Path> =
   | (true extends ShouldDiscard<PathParamsOf<Path>> ? 'path' : never)
   | (true extends ShouldDiscard<QueryParamsOf<Path>> ? 'query' : never)
   | (true extends ShouldDiscard<HeaderParamsOf<Path>> ? 'headers' : never)
-  | (true extends ShouldDiscard<BodyOf<Path>> ? 'body' : never);
+  | (true extends ShouldDiscard<JsonBodyOf<Path>> ? 'body' : never)
+  | (true extends ShouldDiscard<FormDataOf<Path>> ? 'form' : never);
 
 type MethodsRemaining<Path, UsedMethods extends string> = Exclude<
   keyof OwnedRequest<Path, UsedMethods>,
@@ -103,7 +114,8 @@ type OptionalMethods<Path> =
   | IfNever<RequiredKeysOf<Required<PathParamsOf<Path>>>, 'path', never>
   | IfNever<RequiredKeysOf<Required<QueryParamsOf<Path>>>, 'query', never>
   | IfNever<RequiredKeysOf<Required<HeaderParamsOf<Path>>>, 'headers', never>
-  | IfNever<RequiredKeysOf<Required<BodyOf<Path>>>, 'body', never>;
+  | IfNever<RequiredKeysOf<Required<JsonBodyOf<Path>>>, 'body', never>
+  | IfNever<RequiredKeysOf<Required<FormDataOf<Path>>>, 'form', never>;
 
 export type NextOwnedRequest<Path, UsedMethods extends string> = Exclude<
   MethodsRemaining<Path, UsedMethods>,

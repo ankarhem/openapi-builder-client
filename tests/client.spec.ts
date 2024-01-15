@@ -226,6 +226,44 @@ describe('Body', () => {
   });
 });
 
+describe('Form', () => {
+  const client = mockedClient;
+  test('Using form constructs FormData object', async () => {
+    client
+      .with({
+        fetcher: async (url, init) => {
+          const form = init?.body as FormData;
+
+          expect(form.get('name')).toEqual('hello');
+          expect(form.get('photoUrls')).toEqual('url,url2');
+          return new Response();
+        },
+      })
+      .post('/pet')
+      .form({
+        name: 'hello',
+        photoUrls: ['url', 'url2'],
+        tags: [{ id: 1, name: 'tag' }],
+      })
+      .send();
+  });
+  test('Using body sets application/x-www-form-urlencoded header', async () => {
+    client
+      .with({
+        fetcher: async (url, init) => {
+          const headers = new Headers(init.headers);
+          expect(headers.get('Content-Type')).toBe(
+            'application/x-www-form-urlencoded'
+          );
+          return new Response();
+        },
+      })
+      .post('/pet')
+      .form({} as any)
+      .send();
+  });
+});
+
 describe('Middleware', () => {
   test('Can add middleware', async () => {
     const middleware: Mock<MiddlewareFunction> = mock((url, init, next) => {
