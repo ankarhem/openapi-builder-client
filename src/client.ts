@@ -1,3 +1,4 @@
+import { OwnedFetcher } from './fetcher';
 import { OwnedRequest } from './request';
 import {
   ClientOptions,
@@ -13,10 +14,10 @@ import {
 
 export class Client<OpenAPIPaths> {
   private options: ClientOptions;
-  private wrappedFetch: (url: string, init: RequestInit) => ReturnType<Fetcher>;
+  private wrappedFetch: OwnedFetcher;
   constructor(options: ClientOptions) {
     this.options = options;
-    this.wrappedFetch = this.createWrappedFetch();
+    this.wrappedFetch = new OwnedFetcher(options);
   }
 
   /**
@@ -36,47 +37,6 @@ export class Client<OpenAPIPaths> {
         ...(options.middlewares || []),
       ],
     });
-  }
-
-  private createWrappedFetch(): (
-    url: string,
-    init: RequestInit
-  ) => Promise<Response> {
-    if (!this.options.middlewares) return this.options.fetcher;
-
-    const fetchWithRetries = (
-      url: string,
-      init: RequestInit,
-      retries: number = 0
-    ): ReturnType<Fetcher> => {
-      try {
-        return this.options.fetcher(url, init);
-      } catch (error) {
-        if (retries < (this.options.retries || 0)) {
-          return fetchWithRetries(url, init, retries + 1);
-        }
-        throw error;
-      }
-    };
-
-    const middlewareHandler = async (
-      url: string,
-      init: RequestInit,
-      index: number = 0
-    ): ReturnType<Fetcher> => {
-      if (
-        !this.options.middlewares ||
-        index === this.options.middlewares.length
-      ) {
-        return fetchWithRetries(url, init);
-      }
-      const current = this.options.middlewares?.[index];
-      return await current(url, init, (nextUrl, nextInit) =>
-        middlewareHandler(nextUrl, nextInit!, index + 1)
-      );
-    };
-
-    return middlewareHandler;
   }
 
   private send<Path extends keyof OpenAPIPaths>(
@@ -117,7 +77,7 @@ export class Client<OpenAPIPaths> {
       },
     };
 
-    return this.wrappedFetch(url.toString(), init) as Promise<any>;
+    return this.wrappedFetch.send(url.toString(), init) as Promise<any>;
   }
 
   get<PathString extends keyof GetPaths<OpenAPIPaths>>(path: PathString) {

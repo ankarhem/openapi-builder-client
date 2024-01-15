@@ -66,7 +66,7 @@ export type BodyOf<Path> = ValueOf<Get<Path, 'requestBody.content'>>;
 
 /** Client */
 export interface Fetcher {
-  (url: string, init?: RequestInit): Promise<Response>;
+  (url: string, init: RequestInit): Promise<Response>;
 }
 
 export type ClientOptions = {
