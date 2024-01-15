@@ -46,7 +46,7 @@ export const joinFormatter: FormBodyFormatter = (body) => {
     if (typeof value === 'undefined') continue;
 
     if (Array.isArray(value)) {
-      value
+      const valueString = value
         .map((item) => {
           if (typeof item === 'object') {
             return JSON.stringify(item);
@@ -54,6 +54,7 @@ export const joinFormatter: FormBodyFormatter = (body) => {
           return item.toString();
         })
         .join(',');
+      formData.append(key, valueString);
       continue;
     }
 

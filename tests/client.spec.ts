@@ -1,6 +1,6 @@
 import { expect, test, describe, mock, Mock } from 'bun:test';
 import { mockedClient } from './utils';
-import { Fetcher, MiddlewareFunction } from '../src';
+import { Fetcher, MiddlewareFunction, joinFormatter } from '../src';
 
 describe('Methods', () => {
   const anyClient = mockedClient as any;
@@ -349,5 +349,40 @@ describe('Retries', () => {
       .send()
       .catch(() => {});
     expect(middleware).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('Formatters', () => {
+  test('form method uses defaultFormatter', async () => {
+    mockedClient
+      .with({
+        fetcher: async (url, init) => {
+          const form = init?.body as URLSearchParams;
+          expect(form.getAll('array')).toEqual(['1', '2']);
+
+          return new Response();
+        },
+      })
+      .post('/pet')
+      .form({
+        array: [1, 2],
+      } as any)
+      .send();
+  });
+
+  test('Can set form formatter', async () => {
+    mockedClient
+      .with({
+        formBodyFormatter: joinFormatter,
+        fetcher: async (url, init) => {
+          const form = init?.body as URLSearchParams;
+          expect(form.get('array')).toBe('1,2');
+
+          return new Response();
+        },
+      })
+      .post('/pet')
+      .form({ array: [1, 2] } as any)
+      .send();
   });
 });
