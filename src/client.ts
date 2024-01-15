@@ -3,7 +3,6 @@ import { OwnedRequest } from './request';
 import {
   ClientOptions,
   DeletePaths,
-  Fetcher,
   GetPaths,
   Method,
   OwnedRequestState,

@@ -70,9 +70,9 @@ export interface Fetcher {
 }
 
 export type ClientOptions = {
-  fetcher: Fetcher;
   baseUrl: string;
   headers?: Record<string, string>;
+  fetcher: Fetcher;
   middlewares?: MiddlewareFunction[];
   retries?: number;
 };

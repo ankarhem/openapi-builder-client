@@ -1,4 +1,4 @@
-import { Fetcher, MiddlewareFunction } from '.';
+import { Fetcher, MiddlewareFunction } from './types';
 
 export class OwnedFetcher {
   private sender: Fetcher;
