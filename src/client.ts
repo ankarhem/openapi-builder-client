@@ -2,6 +2,7 @@ import { OwnedRequest } from './request';
 import {
   ClientOptions,
   DeletePaths,
+  Fetcher,
   GetPaths,
   Method,
   OwnedRequestState,
@@ -12,8 +13,10 @@ import {
 
 export class Client<OpenAPIPaths> {
   private options: ClientOptions;
+  private wrappedFetch: (url: string, init: RequestInit) => ReturnType<Fetcher>;
   constructor(options: ClientOptions) {
     this.options = options;
+    this.wrappedFetch = this.createWrappedFetch();
   }
 
   /**
@@ -45,7 +48,7 @@ export class Client<OpenAPIPaths> {
       url: string,
       init: RequestInit,
       retries: number = 0
-    ): ReturnType<typeof this.options.fetcher> => {
+    ): ReturnType<Fetcher> => {
       try {
         return this.options.fetcher(url, init);
       } catch (error) {
@@ -60,7 +63,7 @@ export class Client<OpenAPIPaths> {
       url: string,
       init: RequestInit,
       index: number = 0
-    ): ReturnType<typeof this.options.fetcher> => {
+    ): ReturnType<Fetcher> => {
       if (
         !this.options.middlewares ||
         index === this.options.middlewares.length
@@ -73,7 +76,7 @@ export class Client<OpenAPIPaths> {
       );
     };
 
-    return (url: string, init: RequestInit) => middlewareHandler(url, init);
+    return middlewareHandler;
   }
 
   private send<Path extends keyof OpenAPIPaths>(
@@ -114,9 +117,7 @@ export class Client<OpenAPIPaths> {
       },
     };
 
-    const fetchWithMiddleware = this.createWrappedFetch();
-
-    return fetchWithMiddleware(url.toString(), init) as Promise<any>;
+    return this.wrappedFetch(url.toString(), init) as Promise<any>;
   }
 
   get<PathString extends keyof GetPaths<OpenAPIPaths>>(path: PathString) {
