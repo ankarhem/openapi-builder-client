@@ -19,7 +19,7 @@ pnpm add -D typescript@^5.0.0 type-fest@^4.9.0
 - [x] Configurable retries
 - [x] JSON
 - [ ] XML
-- [ ] Form encoding
+- [x] Form encoding
 - [ ] Streams
 
 ## Contribute

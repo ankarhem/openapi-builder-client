@@ -1,3 +1,4 @@
+import { Primitive } from 'type-fest';
 import {
   JsonBodyOf,
   HeaderParamsOf,
@@ -63,11 +64,7 @@ export class OwnedRequest<Path, UsedMethods extends string = ''> {
 
   form(data: FormDataOf<Path>) {
     if (data) {
-      const formData = new FormData();
-      Object.entries(data).forEach(([key, value]) => {
-        formData.append(key, value);
-      });
-      this._body = formData;
+      this._body = buildSearchParams(data);
       this._headers['Content-Type'] = 'application/x-www-form-urlencoded';
     }
     return this as NextOwnedRequest<Path, UsedMethods | BodyMethods>;
@@ -79,7 +76,7 @@ export class OwnedRequest<Path, UsedMethods extends string = ''> {
   headers(headers: HeaderParamsOf<Path>) {
     if (headers) {
       this._headers = {
-        ...this.__headers,
+        ...this._headers,
         ...headers,
       };
     }
@@ -97,4 +94,32 @@ export class OwnedRequest<Path, UsedMethods extends string = ''> {
       _headers: this._headers,
     });
   }
+}
+
+function buildSearchParams(
+  obj: Record<string, any> | Exclude<Primitive, symbol>,
+  params = new URLSearchParams(),
+  parentKey = ''
+) {
+  if (typeof obj === 'undefined' || !obj) return params;
+
+  if (Array.isArray(obj)) {
+    obj.forEach((element) => {
+      buildSearchParams(element, params, parentKey);
+    });
+    return params;
+  }
+
+  if (typeof obj === 'object') {
+    Object.keys(obj).forEach((key) => {
+      buildSearchParams(
+        obj[key],
+        params,
+        parentKey ? `${parentKey}.${key}` : key
+      );
+    });
+    return params;
+  }
+
+  params.append(parentKey, obj.toString());
 }
