@@ -1,55 +1,53 @@
-import { ClientOptions, Fetcher } from '.';
+import { Fetcher, MiddlewareFunction } from '.';
 
 export class OwnedFetcher {
-  private options: ClientOptions;
-  private wrappedFetcher: Fetcher;
-  constructor(options: ClientOptions) {
-    this.options = options;
-    this.wrappedFetcher = this.createWrappedFetch();
+  private sender: Fetcher;
+  constructor(fetcher: Fetcher) {
+    this.sender = fetcher;
   }
 
-  private createWrappedFetch(): (
-    url: string,
-    init: RequestInit
-  ) => Promise<Response> {
-    if (!this.options.middlewares) return this.options.fetcher;
+  withRetries(retries: number = 0) {
+    if (retries <= 0) return this;
 
-    const fetchWithRetries = (
+    const fetchWithRetries = async (
       url: string,
       init: RequestInit,
-      retries: number = 0
+      retryCount: number = 0
     ): ReturnType<Fetcher> => {
       try {
-        return this.options.fetcher(url, init);
+        return await this.send(url, init);
       } catch (error) {
-        if (retries < (this.options.retries || 0)) {
-          return fetchWithRetries(url, init, retries + 1);
+        if (retryCount < (retries || 0)) {
+          return await fetchWithRetries(url, init, retryCount + 1);
         }
         throw error;
       }
     };
 
-    const middlewareHandler = async (
+    return new OwnedFetcher(fetchWithRetries);
+  }
+
+  withMiddlewares(middlewares: MiddlewareFunction[] = []) {
+    if (middlewares.length === 0) return this;
+
+    const fetchWithMiddlewares = (
       url: string,
       init: RequestInit,
       index: number = 0
     ): ReturnType<Fetcher> => {
-      if (
-        !this.options.middlewares ||
-        index === this.options.middlewares.length
-      ) {
-        return fetchWithRetries(url, init);
+      if (!middlewares || index === middlewares.length) {
+        return this.sender(url, init);
       }
-      const current = this.options.middlewares?.[index];
-      return await current(url, init, (nextUrl, nextInit) =>
-        middlewareHandler(nextUrl, nextInit, index + 1)
+      const current = middlewares?.[index];
+      return current(url, init, (nextUrl, nextInit) =>
+        fetchWithMiddlewares(nextUrl, nextInit, index + 1)
       );
     };
 
-    return middlewareHandler;
+    return new OwnedFetcher(fetchWithMiddlewares);
   }
 
   send(url: string, init: RequestInit) {
-    return this.wrappedFetcher(url, init);
+    return this.sender(url, init);
   }
 }

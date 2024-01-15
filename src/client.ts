@@ -14,10 +14,12 @@ import {
 
 export class Client<OpenAPIPaths> {
   private options: ClientOptions;
-  private wrappedFetch: OwnedFetcher;
+  private ownedFetcher: OwnedFetcher;
   constructor(options: ClientOptions) {
     this.options = options;
-    this.wrappedFetch = new OwnedFetcher(options);
+    this.ownedFetcher = new OwnedFetcher(options.fetcher)
+      .withRetries(options.retries)
+      .withMiddlewares(options.middlewares);
   }
 
   /**
@@ -77,7 +79,7 @@ export class Client<OpenAPIPaths> {
       },
     };
 
-    return this.wrappedFetch.send(url.toString(), init) as Promise<any>;
+    return this.ownedFetcher.send(url.toString(), init) as Promise<any>;
   }
 
   get<PathString extends keyof GetPaths<OpenAPIPaths>>(path: PathString) {

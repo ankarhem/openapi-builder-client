@@ -320,7 +320,7 @@ describe('Retries', () => {
     throw new Error('');
   };
 
-  test('Can will retry if request throws', async () => {
+  test('Will retry if request throws', async () => {
     const mockedThrowingFetcher: Mock<Fetcher> = mock(throwingFetcher);
     const client = mockedClient.with({
       fetcher: mockedThrowingFetcher,
