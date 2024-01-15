@@ -53,13 +53,13 @@ export class Client<OpenAPIPaths> {
     const searchParams = new URLSearchParams();
     for (const [key, value] of Object.entries(state._queryParams)) {
       if (Array.isArray(value)) {
-        for (let item in value) {
+        for (const item of value) {
           searchParams.append(key, item);
         }
         continue;
       }
 
-      searchParams.append(key, value);
+      searchParams.append(key, value as string);
     }
     if (searchParams.size > 0) {
       path += `?${searchParams.toString()}`;
@@ -69,9 +69,10 @@ export class Client<OpenAPIPaths> {
     const combinedPath = (baseUrl.pathname + path).replace('//', '/');
 
     const url = new URL(combinedPath, this.options.baseUrl).toString();
+
     const init: RequestInit = {
       method: method,
-      body: Object.keys(state._body).length === 0 ? undefined : state._body,
+      body: state._body,
       headers: {
         ...this.options.headers,
         ...state._headers,

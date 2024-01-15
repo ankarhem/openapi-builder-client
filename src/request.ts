@@ -9,10 +9,10 @@ import {
 } from './types';
 
 export class OwnedRequest<Path, UsedMethods extends string = ''> {
-  private _pathParams: Record<string, string | number> = {};
-  private _queryParams: Record<string, any> = {};
-  private _headers: Record<string, string> = {};
-  private _body: Record<string, any> = {};
+  private _pathParams: OwnedRequestState['_pathParams'] = {};
+  private _queryParams: OwnedRequestState['_queryParams'] = {};
+  private _headers: OwnedRequestState['_headers'] = {};
+  private _body: OwnedRequestState['_body'] = undefined;
 
   private _send: (state: OwnedRequestState) => Promise<ResponseOf<Path>>;
 
@@ -35,8 +35,7 @@ export class OwnedRequest<Path, UsedMethods extends string = ''> {
   }
 
   __path(params: Record<string, string | number>) {
-    this._pathParams = params;
-    return this as NextOwnedRequest<Path, UsedMethods | 'path'>;
+    return this.path(params as any);
   }
 
   query(params: QueryParamsOf<Path>) {
@@ -47,36 +46,33 @@ export class OwnedRequest<Path, UsedMethods extends string = ''> {
   }
 
   __query(params: Record<string, any>) {
-    this._queryParams = params;
-    return this as NextOwnedRequest<Path, UsedMethods | 'query'>;
+    return this.query(params as any);
   }
 
   body(body: BodyOf<Path>) {
     if (body) {
-      this._body = body;
+      this._body = JSON.stringify(body);
+      this._headers['Content-Type'] = 'application/json';
     }
     return this as NextOwnedRequest<Path, UsedMethods | 'body'>;
   }
 
   __body(body: Record<string, any>) {
-    if (body) {
-      this._body = body;
-    }
-    return this as NextOwnedRequest<Path, UsedMethods | 'body'>;
+    return this.body(body as any);
   }
 
   headers(headers: HeaderParamsOf<Path>) {
     if (headers) {
-      this._headers = headers;
+      this._headers = {
+        ...this.__headers,
+        ...headers,
+      };
     }
     return this as NextOwnedRequest<Path, UsedMethods | 'headers'>;
   }
 
   __headers(headers: Record<string, string>) {
-    if (headers) {
-      this._headers = headers;
-    }
-    return this as NextOwnedRequest<Path, UsedMethods | 'headers'>;
+    return this.headers(headers as any);
   }
 
   send() {

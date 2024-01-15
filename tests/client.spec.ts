@@ -102,20 +102,37 @@ describe('Url', () => {
       })
       .send();
   });
+
+  test('Query array values are constructed as `?tags=a&tags=b`', async () => {
+    client
+      .with({
+        fetcher: async (url, init) => {
+          expect(url).toBe(
+            'https://petstore3.swagger.io/api/v3/pet/findByTags?tags=a&tags=b'
+          );
+          return new Response();
+        },
+      })
+      .get('/pet/findByTags')
+      .query({
+        tags: ['a', 'b'],
+      })
+      .send();
+  });
 });
 
 describe('Headers', () => {
-  const client = mockedClient.with({
-    headers: {
-      'x-hello': 'world',
-    },
-  });
   test('Can set default headers', async () => {
+    const client = mockedClient.with({
+      headers: {
+        'x-default': 'header',
+      },
+    });
     client
       .with({
         fetcher: async (url, init) => {
           expect(init?.headers).toEqual({
-            'x-hello': 'world',
+            'x-default': 'header',
           });
           return new Response();
         },
@@ -125,124 +142,86 @@ describe('Headers', () => {
   });
 
   test('Can override default header', async () => {
-    client
-      .with({
-        headers: {
-          'x-hello': 'overridden',
-        },
-        fetcher: async (url, init) => {
-          expect(init?.headers).toEqual({
-            'x-hello': 'overridden',
-          });
-          return new Response();
-        },
-      })
-      .get('/pet/findByStatus')
-      .send();
-    client
-      .with({
-        fetcher: async (url, init) => {
-          expect(init?.headers).toEqual({
-            'x-hello': 'overridden',
-          });
-          return new Response();
-        },
-      })
-      .get('/pet/findByStatus')
-      .__headers({
-        'x-hello': 'overridden',
-      })
-      .send();
-  });
+    const client = mockedClient.with({
+      headers: {
+        api_key: '1234',
+      },
+    });
 
-  test('Can add additional header per request', async () => {
-    client
-      .with({
-        headers: {
-          'x-something': 'else',
-        },
-        fetcher: async (url, init) => {
-          expect(init?.headers).toEqual({
-            'x-hello': 'world',
-            'x-something': 'else',
-          });
-          return new Response();
-        },
-      })
-      .get('/pet/findByStatus')
-      .send();
     client
       .with({
         fetcher: async (url, init) => {
           expect(init?.headers).toEqual({
-            'x-hello': 'world',
-            'x-something': 'else',
-          });
-          return new Response();
-        },
-      })
-      .get('/pet/findByStatus')
-      .__headers({
-        'x-something': 'else',
-      })
-      .send();
-  });
-
-  test('Can add headers if defined in openapi', async () => {
-    client
-      .with({
-        fetcher: async (url, init) => {
-          expect(init?.headers).toEqual({
-            'x-hello': 'world',
-            api_key: 'abc123',
+            api_key: 'abcd',
           });
           return new Response();
         },
       })
       .delete('/pet/{petId}')
+      .__path({})
       .headers({
-        api_key: 'abc123',
+        api_key: 'abcd',
       })
-      .path({ petId: 1 });
+      .send();
+  });
+
+  test('Can add additional header per request', async () => {
+    const client = mockedClient.with({
+      headers: {
+        'x-default': 'header',
+      },
+    });
+
+    client
+      .with({
+        fetcher: async (url, init) => {
+          expect(init?.headers).toEqual({
+            'x-default': 'header',
+            api_key: 'abcd',
+          });
+          return new Response();
+        },
+      })
+      .delete('/pet/{petId}')
+      .__path({})
+      .headers({
+        api_key: 'abcd',
+      })
+      .send();
   });
 });
 
 describe('Body', () => {
   const client = mockedClient;
-  test('Can set json body', async () => {
+  test('Using body serializes json', async () => {
     client
       .with({
         fetcher: async (url, init) => {
           const body = init?.body?.valueOf();
-          expect(body).toEqual({
-            name: 'Jane',
-            photoUrls: ['1', '2'],
+          expect(body).toBeString();
+          expect(JSON.parse(body as string)).toEqual({
+            name: 'hello',
           });
           return new Response();
         },
       })
       .post('/pet')
       .body({
-        name: 'Jane',
-        photoUrls: ['1', '2'],
-      })
+        name: 'hello',
+      } as any)
       .send();
   });
-  test('Can arbitrary body using override method', async () => {
+  test('Using body sets application/json header', async () => {
     client
       .with({
         fetcher: async (url, init) => {
-          const body = init?.body?.valueOf();
-          expect(body).toEqual({
-            test: 1,
-          });
+          const headers = new Headers(init.headers);
+          expect(headers.get('Content-Type')).toBe('application/json');
           return new Response();
         },
       })
       .post('/pet')
-      .__body({
-        test: 1,
-      })
+      .body({} as any)
       .send();
   });
 });

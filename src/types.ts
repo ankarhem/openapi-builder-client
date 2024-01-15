@@ -117,7 +117,7 @@ export type NextOwnedRequest<Path, UsedMethods extends string> = Exclude<
 
 export interface OwnedRequestState {
   _pathParams: Record<string, string | number>;
-  _queryParams: Record<string, any>;
-  _headers: Record<string, string>;
-  _body: any;
+  _queryParams: Record<string, string | readonly string[]>;
+  _headers: Record<string, string | readonly string[]>;
+  _body: RequestInit['body'];
 }
