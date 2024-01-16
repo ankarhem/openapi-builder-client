@@ -79,7 +79,7 @@ export interface Fetcher {
   (url: string, init: RequestInit): Promise<Response>;
 }
 
-export type FormBodyFormatter = (body: Record<string, any>) => FormData;
+export type FormBodyFormatter = (json: Record<string, any>) => FormData;
 
 export type ClientOptions = {
   baseUrl: string;
@@ -87,7 +87,7 @@ export type ClientOptions = {
   fetcher: Fetcher;
   middlewares?: MiddlewareFunction[];
   retries?: number;
-  formBodyFormatter?: FormBodyFormatter;
+  formFormatter?: FormBodyFormatter;
 };
 
 export type MiddlewareFunction = (
@@ -132,7 +132,7 @@ export type NextOwnedRequest<Path, UsedMethods extends string> = Exclude<
 
 export interface OwnedRequestState {
   path: Record<string, string | number>;
-  query: Record<string, string | readonly string[]>;
+  query: Record<string, any>;
   headers: Record<string, string | readonly string[]>;
-  body: RequestInit['body'];
+  body: Record<string, any> | undefined;
 }

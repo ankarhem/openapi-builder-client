@@ -16,12 +16,12 @@ import {
 export class Client<OpenAPIPaths> {
   private options: SetRequired<
     ClientOptions,
-    'formBodyFormatter' | 'retries' | 'middlewares'
+    'formFormatter' | 'retries' | 'middlewares'
   >;
   private ownedFetcher: OwnedFetcher;
   constructor(options: ClientOptions) {
     this.options = {
-      formBodyFormatter: defaultFormatter,
+      formFormatter: defaultFormatter,
       retries: 0,
       middlewares: [],
       ...options,
@@ -60,17 +60,9 @@ export class Client<OpenAPIPaths> {
       path = path.replace(`{${key}}`, value.toString());
     }
 
-    const searchParams = new URLSearchParams();
-    for (const [key, value] of Object.entries(state.query)) {
-      if (Array.isArray(value)) {
-        for (const item of value) {
-          searchParams.append(key, item);
-        }
-        continue;
-      }
-
-      searchParams.append(key, value as string);
-    }
+    const searchParams = new URLSearchParams(
+      this.options.formFormatter(state.query) as any
+    );
     if (searchParams.size > 0) {
       path += `?${searchParams.toString()}`;
     }
@@ -82,7 +74,7 @@ export class Client<OpenAPIPaths> {
 
     const init: RequestInit = {
       method: method,
-      body: state.body,
+      body: this.encodeBody(state),
       headers: {
         ...this.options.headers,
         ...state.headers,
@@ -92,37 +84,49 @@ export class Client<OpenAPIPaths> {
     return this.ownedFetcher.send(url.toString(), init) as Promise<any>;
   }
 
+  private encodeBody(state: OwnedRequestState): RequestInit['body'] {
+    if (!state.body) return undefined;
+
+    switch (state.headers['Content-Type']) {
+      case 'multipart/form-data':
+        return this.options.formFormatter(state.body);
+      case 'application/x-www-form-urlencoded':
+        return new URLSearchParams(
+          this.options.formFormatter(state.body) as any
+        );
+      case 'application/json':
+      default:
+        return JSON.stringify(state.body);
+    }
+  }
+
   get<PathString extends keyof GetPaths<OpenAPIPaths>>(path: PathString) {
     const ownedRequest = new OwnedRequest<GetPaths<OpenAPIPaths>[PathString]>(
-      this.send.bind(this, 'GET', path),
-      this.options
+      this.send.bind(this, 'GET', path)
     );
     return ownedRequest.__withDynamicTyping();
   }
   post<PathString extends keyof PostPaths<OpenAPIPaths>>(path: PathString) {
     const ownedRequest = new OwnedRequest<PostPaths<OpenAPIPaths>[PathString]>(
-      this.send.bind(this, 'POST', path),
-      this.options
+      this.send.bind(this, 'POST', path)
     );
     return ownedRequest.__withDynamicTyping();
   }
   put<PathString extends keyof PutPaths<OpenAPIPaths>>(path: PathString) {
     const ownedRequest = new OwnedRequest<PutPaths<OpenAPIPaths>[PathString]>(
-      this.send.bind(this, 'PUT', path),
-      this.options
+      this.send.bind(this, 'PUT', path)
     );
     return ownedRequest.__withDynamicTyping();
   }
   delete<PathString extends keyof DeletePaths<OpenAPIPaths>>(path: PathString) {
     const ownedRequest = new OwnedRequest<
       DeletePaths<OpenAPIPaths>[PathString]
-    >(this.send.bind(this, 'DELETE', path), this.options);
+    >(this.send.bind(this, 'DELETE', path));
     return ownedRequest.__withDynamicTyping();
   }
   patch<PathString extends keyof PatchPaths<OpenAPIPaths>>(path: PathString) {
     const ownedRequest = new OwnedRequest<PatchPaths<OpenAPIPaths>[PathString]>(
-      this.send.bind(this, 'PATCH', path),
-      this.options
+      this.send.bind(this, 'PATCH', path)
     );
     return ownedRequest.__withDynamicTyping();
   }

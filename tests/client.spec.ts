@@ -107,23 +107,6 @@ describe('Url', () => {
       })
       .send();
   });
-
-  test('Query array values are constructed as `?tags=a&tags=b`', async () => {
-    client
-      .with({
-        fetcher: async (url, init) => {
-          expect(url).toBe(
-            'https://petstore3.swagger.io/api/v3/pet/findByTags?tags=a&tags=b'
-          );
-          return new Response();
-        },
-      })
-      .get('/pet/findByTags')
-      .query({
-        tags: ['a', 'b'],
-      })
-      .send();
-  });
 });
 
 describe('Headers', () => {
@@ -358,53 +341,111 @@ describe('Retries', () => {
 });
 
 describe('Formatters', () => {
-  test('form method uses defaultFormatter', async () => {
-    mockedClient
-      .with({
-        fetcher: async (url, init) => {
-          const form = init?.body as URLSearchParams;
-          expect(form.getAll('array')).toEqual(['1', '2']);
+  describe('Body', () => {
+    test('Uses defaultFormatter by default', async () => {
+      mockedClient
+        .with({
+          fetcher: async (url, init) => {
+            const form = init?.body as URLSearchParams;
+            expect(form.getAll('array')).toEqual(['1', '2']);
 
-          return new Response();
-        },
-      })
-      .post('/pet')
-      .form({
-        array: [1, 2],
-      } as any)
-      .send();
+            return new Response();
+          },
+        })
+        .post('/pet')
+        .form({
+          array: [1, 2],
+        } as any)
+        .send();
+    });
+
+    test('Can use joinFormatter', async () => {
+      mockedClient
+        .with({
+          formFormatter: joinFormatter,
+          fetcher: async (url, init) => {
+            const form = init?.body as URLSearchParams;
+            expect(form.get('array')).toBe('1,2');
+
+            return new Response();
+          },
+        })
+        .post('/pet')
+        .form({ array: [1, 2] } as any)
+        .send();
+    });
+
+    test('Can use pathFormatter', async () => {
+      mockedClient
+        .with({
+          formFormatter: pathFormatter,
+          fetcher: async (url, init) => {
+            const form = init?.body as URLSearchParams;
+            expect(form.get('array[0]')).toBe('1');
+            expect(form.get('array[1]')).toBe('2');
+
+            return new Response();
+          },
+        })
+        .post('/pet')
+        .form({ array: [1, 2] } as any)
+        .send();
+    });
   });
 
-  test('Can use joinFormatter', async () => {
-    mockedClient
-      .with({
-        formBodyFormatter: joinFormatter,
-        fetcher: async (url, init) => {
-          const form = init?.body as URLSearchParams;
-          expect(form.get('array')).toBe('1,2');
+  describe('Query', () => {
+    test('Uses defaultFormatter by default', async () => {
+      mockedClient
+        .with({
+          fetcher: async (url, init) => {
+            const searchParams = new URL(url).searchParams;
+            expect(searchParams.getAll('tags')).toEqual(['1', '2']);
 
-          return new Response();
-        },
-      })
-      .post('/pet')
-      .form({ array: [1, 2] } as any)
-      .send();
-  });
+            return new Response();
+          },
+        })
+        .get('/pet/findByTags')
+        .query({
+          tags: ['1', '2'],
+        })
+        .send();
+    });
 
-  test('Can use pathFormatter', async () => {
-    mockedClient
-      .with({
-        formBodyFormatter: pathFormatter,
-        fetcher: async (url, init) => {
-          const form = init?.body as URLSearchParams;
-          expect(form.get('array[0]')).toBe('1');
-          expect(form.get('array[1]')).toBe('2');
+    test('Can use joinFormatter', async () => {
+      mockedClient
+        .with({
+          formFormatter: joinFormatter,
+          fetcher: async (url, init) => {
+            const searchParams = new URL(url).searchParams;
+            expect(searchParams.get('tags')).toBe('1,2');
 
-          return new Response();
-        },
-      })
-      .post('/pet')
-      .form({ array: [1, 2] } as any)
-      .send();
+            return new Response();
+          },
+        })
+        .get('/pet/findByTags')
+        .query({
+          tags: ['1', '2'],
+        })
+        .send();
+    });
+
+    test('Can use pathFormatter', async () => {
+      mockedClient
+        .with({
+          formFormatter: pathFormatter,
+          fetcher: async (url, init) => {
+            const searchParams = new URL(url).searchParams;
+            expect(searchParams.get('tags[0]')).toBe('1');
+            expect(searchParams.get('tags[1]')).toBe('2');
+
+            return new Response();
+          },
+        })
+        .get('/pet/findByTags')
+        .query({
+          tags: ['1', '2'],
+        })
+        .send();
+    });
   });
 });

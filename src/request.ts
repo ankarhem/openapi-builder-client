@@ -21,13 +21,8 @@ export class OwnedRequest<Path, UsedMethods extends string = ''> {
   };
 
   private _send: (state: OwnedRequestState) => Promise<ResponseOf<Path>>;
-  private options: Required<Pick<ClientOptions, 'formBodyFormatter'>>;
 
-  constructor(
-    send: (state: OwnedRequestState) => Promise<ResponseOf<Path>>,
-    options: Required<Pick<ClientOptions, 'formBodyFormatter'>>
-  ) {
-    this.options = options;
+  constructor(send: (state: OwnedRequestState) => Promise<ResponseOf<Path>>) {
     this._send = send;
     return this;
   }
@@ -60,7 +55,7 @@ export class OwnedRequest<Path, UsedMethods extends string = ''> {
 
   body(body: JsonBodyOf<Path>) {
     if (body) {
-      this.state.body = JSON.stringify(body);
+      this.state.body = body;
       this.state.headers['Content-Type'] = 'application/json';
     }
     return this as NextOwnedRequest<Path, UsedMethods | BodyMethods>;
@@ -71,8 +66,7 @@ export class OwnedRequest<Path, UsedMethods extends string = ''> {
 
   form(data: FormDataOf<Path>) {
     if (data) {
-      const formData = this.options.formBodyFormatter(data);
-      this.state.body = new URLSearchParams(formData as any);
+      this.state.body = data;
       this.state.headers['Content-Type'] = 'application/x-www-form-urlencoded';
     }
     return this as NextOwnedRequest<Path, UsedMethods | BodyMethods>;

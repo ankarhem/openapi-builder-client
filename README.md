@@ -2,7 +2,7 @@
 
 ## To Install
 
-Runtime has no dependencies and is very small (`~1.68kb` minified).
+Runtime has no dependencies and is small (`~1.3kb` minified gzipped).
 For types to work you need `typescript` and `type-fest`.
 
 ```bash
@@ -18,9 +18,9 @@ pnpm add -D typescript@^5.0.0 type-fest@^4.9.0
 - [x] Middlewares
 - [x] Configurable retries
 - [x] JSON
-- [ ] XML
 - [x] Form encoding
 - [ ] Streams
+- [ ] XML
 
 ## Contribute
 

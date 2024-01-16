@@ -29,6 +29,7 @@ export const defaultFormatter: FormBodyFormatter = (data) => {
 
     if (value instanceof File) {
       formData.append(key, value);
+      continue;
     }
 
     formData.append(key, value.toString());
@@ -66,6 +67,7 @@ export const joinFormatter: FormBodyFormatter = (data) => {
 
     if (value instanceof File) {
       formData.append(key, value);
+      continue;
     }
 
     formData.append(key, value.toString());
@@ -75,7 +77,7 @@ export const joinFormatter: FormBodyFormatter = (data) => {
 };
 
 class PathFormatter {
-  static flatten(
+  private static flatten(
     data: Record<string, any> | Array<any>,
     prefix = ''
   ): Record<string, string | File> {
