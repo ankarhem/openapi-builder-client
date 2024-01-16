@@ -18,9 +18,7 @@ pnpm add -D typescript@^5.0.0 type-fest@^4.9.0
 - [x] Middlewares
 - [x] Configurable retries
 - [x] JSON
-- [x] Form encoding
-- [ ] Streams
-- [ ] XML
+- [x] Configurable form encoding
 
 ## Contribute
 
