@@ -1,11 +1,25 @@
-import { Primitive } from 'type-fest';
-import { FormBodyFormatter } from './types';
+import { FormFormatter } from './types';
 
 /**
+ * Behaves like a submitted html form.
+ *
  * Repeats key for array values.
  * Stringifies objects.
+ *
+ * ```json
+ * {
+ *   "categories": ["cat", "dog"]
+ *   "names": [
+ *     {
+ *       "firstName": "John"
+ *     }
+ *   ]
+ * }
+ * ```
+ *
+ * `?categories=dog&categories=cat&names=%7B%22firstName%22%3A%22John%22%7D`
  */
-export const defaultFormatter: FormBodyFormatter = (data) => {
+export const htmlFormatter: FormFormatter = (data) => {
   const formData = new FormData();
   for (const [key, value] of Object.entries(data)) {
     if (typeof value === 'undefined') continue;
@@ -40,9 +54,23 @@ export const defaultFormatter: FormBodyFormatter = (data) => {
 
 /**
  * Joins array values with `,`
+ *
  * Stringifies objects.
+ *
+ * ```json
+ * {
+ *   "categories": ["cat", "dog"]
+ *   "names": [
+ *     {
+ *       "firstName": "John"
+ *     }
+ *   ]
+ * }
+ * ```
+ *
+ * `?categories=dog,cat&names=%7B%22firstName%22%3A%22John%22%7D`
  */
-export const joinFormatter: FormBodyFormatter = (data) => {
+export const joinFormatter: FormFormatter = (data) => {
   const formData = new FormData();
   for (const [key, value] of Object.entries(data)) {
     if (typeof value === 'undefined') continue;
@@ -135,17 +163,18 @@ class PathFormatter {
 }
 
 /**
- * Converts object with key as path to value
- * eg.
+ * Converts object with path to the value as key
+ *
  * ```json
  * {
+ *   "categories": ["cat", "dog"]
  *   "names": [
  *     {
- *       "firstName": "hello"
+ *       "firstName": "John"
  *     }
  *   ]
  * }
  * ```
- * `?names[0].firstName=hello`
+ * `?categories[0]=cat&categories[1]=dog&names[0].firstName=John`
  */
-export const pathFormatter: FormBodyFormatter = PathFormatter.format;
+export const pathFormatter: FormFormatter = PathFormatter.format;

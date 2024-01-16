@@ -10,7 +10,8 @@
     "README.md"
   ],
   "exports": {
-    ".": "./dist/src/index.js"
+    ".": "./dist/src/index.js",
+    "./formatters": "./dist/src/search.js"
   },
   "devDependencies": {
     "bun-types": "latest",

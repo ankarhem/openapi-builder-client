@@ -1,7 +1,6 @@
 import { SetRequired } from 'type-fest';
 import { OwnedFetcher } from './fetcher';
 import { OwnedRequest } from './request';
-import { defaultFormatter } from './search';
 import {
   ClientOptions,
   DeletePaths,
@@ -21,7 +20,6 @@ export class Client<OpenAPIPaths> {
   private ownedFetcher: OwnedFetcher;
   constructor(options: ClientOptions) {
     this.options = {
-      formFormatter: defaultFormatter,
       retries: 0,
       middlewares: [],
       ...options,

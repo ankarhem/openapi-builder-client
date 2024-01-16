@@ -7,7 +7,6 @@ import {
   QueryParamsOf,
   ResponseOf,
   FormDataOf,
-  ClientOptions,
 } from './types';
 
 type BodyMethods = 'body' | 'form';

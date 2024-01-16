@@ -79,7 +79,7 @@ export interface Fetcher {
   (url: string, init: RequestInit): Promise<Response>;
 }
 
-export type FormBodyFormatter = (json: Record<string, any>) => FormData;
+export type FormFormatter = (json: Record<string, any>) => FormData;
 
 export type ClientOptions = {
   baseUrl: string;
@@ -87,7 +87,7 @@ export type ClientOptions = {
   fetcher: Fetcher;
   middlewares?: MiddlewareFunction[];
   retries?: number;
-  formFormatter?: FormBodyFormatter;
+  formFormatter: FormFormatter;
 };
 
 export type MiddlewareFunction = (

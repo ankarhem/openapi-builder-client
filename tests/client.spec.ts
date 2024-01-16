@@ -1,11 +1,7 @@
 import { expect, test, describe, mock, Mock } from 'bun:test';
 import { mockedClient } from './utils';
-import {
-  Fetcher,
-  MiddlewareFunction,
-  joinFormatter,
-  pathFormatter,
-} from '../src';
+import { Fetcher, MiddlewareFunction } from '../src';
+import { joinFormatter, pathFormatter } from '../src/search';
 
 describe('Methods', () => {
   const anyClient = mockedClient as any;

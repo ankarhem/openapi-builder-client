@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { defaultFormatter, joinFormatter, pathFormatter } from '../src';
+import { htmlFormatter, joinFormatter, pathFormatter } from '../src/search';
 import { mockedClient } from './utils';
 
 describe('defaultFormatter', () => {
@@ -10,7 +10,7 @@ describe('defaultFormatter', () => {
       string: 'hello',
       float: 2.1,
     };
-    const form = defaultFormatter(data);
+    const form = htmlFormatter(data);
 
     expect(form.get('number')).toBe('1');
     expect(form.get('boolean')).toBe('true');
@@ -22,7 +22,7 @@ describe('defaultFormatter', () => {
     const data = {
       array: [1, 2],
     };
-    const form = defaultFormatter(data);
+    const form = htmlFormatter(data);
 
     expect(form.getAll('array')).toEqual(['1', '2']);
   });
@@ -34,7 +34,7 @@ describe('defaultFormatter', () => {
       },
       jsonArray: [{ a: 1 }, { b: 2 }],
     };
-    const form = defaultFormatter(data);
+    const form = htmlFormatter(data);
 
     expect(form.get('json')).toEqual(JSON.stringify(data.json));
     expect(form.getAll('jsonArray')).toEqual(
