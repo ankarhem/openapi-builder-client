@@ -4,21 +4,13 @@ import {
   IfNever,
   IntRange,
   IsEmptyObject,
-  IsLiteral,
   IsNever,
-  IsNumericLiteral,
   IsUnknown,
-  Opaque,
   RequiredKeysOf,
   Simplify,
-  Tagged,
-  TaggedUnion,
-  UnionToIntersection,
   ValueOf,
 } from 'type-fest';
 import { OwnedRequest } from './request';
-import { paths } from '../openapi/petstore';
-import { tag } from 'type-fest/source/opaque';
 
 export type Method = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
@@ -60,30 +52,31 @@ type JsonResponseOf<Path, Code extends keyof Get<Path, 'responses'>> = Get<
   Get<Path, 'responses'>[Code],
   'content.application/json'
 >;
+
 export type ResponseOf<Path> = Simplify<
-  Omit<Response, 'status' | 'json' | 'ok'> &
-    ValueOf<
-      {
-        [Code in keyof Get<Path, 'responses'> as IfNever<
-          JsonResponseOf<Path, Code>,
-          never,
-          Code
-        >]: {
-          ok: Code extends IntRange<200, 300> ? true : false;
-          status: Code;
-          json(): JsonResponseOf<Path, Code>;
-        };
-      } & {
-        [Code in keyof Get<Path, 'responses'> as IfNever<
-          JsonResponseOf<Path, Code>,
-          Code,
-          never
-        >]: {
-          ok: Code extends IntRange<200, 300> ? true : false;
-          status: Code;
-        };
-      }
-    >
+  ValueOf<
+    {
+      [Code in keyof Get<Path, 'responses'> as IfNever<
+        JsonResponseOf<Path, Code>,
+        never,
+        Code
+      >]: {
+        ok: Code extends IntRange<200, 300> ? true : false;
+        status: Code;
+        json(): JsonResponseOf<Path, Code>;
+      };
+    } & {
+      [Code in keyof Get<Path, 'responses'> as IfNever<
+        JsonResponseOf<Path, Code>,
+        Code,
+        never
+      >]: {
+        ok: Code extends IntRange<200, 300> ? true : false;
+        status: Code;
+      };
+    }
+  > &
+    Omit<Response, 'status' | 'json' | 'ok'>
 >;
 
 export type PathParamsOf<Path> = Get<Path, 'parameters.path'>;
