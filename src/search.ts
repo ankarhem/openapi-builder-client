@@ -17,7 +17,7 @@ import { FormFormatter } from './types';
  * }
  * ```
  *
- * `?categories=dog&categories=cat&names=%7B%22firstName%22%3A%22John%22%7D`
+ * `?categories=cat&categories=dog&names=%7B%22firstName%22%3A%22John%22%7D`
  */
 export const htmlFormatter: FormFormatter = (data) => {
   const formData = new FormData();
@@ -68,7 +68,7 @@ export const htmlFormatter: FormFormatter = (data) => {
  * }
  * ```
  *
- * `?categories=dog,cat&names=%7B%22firstName%22%3A%22John%22%7D`
+ * `?categories=cat,dog&names=%7B%22firstName%22%3A%22John%22%7D`
  */
 export const joinFormatter: FormFormatter = (data) => {
   const formData = new FormData();
