@@ -62,17 +62,28 @@ type JsonResponseOf<Path, Code extends keyof Get<Path, 'responses'>> = Get<
 >;
 export type ResponseOf<Path> = Simplify<
   Omit<Response, 'status' | 'json' | 'ok'> &
-    ValueOf<{
-      [Code in keyof Get<Path, 'responses'>]: {
-        ok: Code extends IntRange<200, 300> ? true : false;
-        status: Code;
-        json(): IfNever<
+    ValueOf<
+      {
+        [Code in keyof Get<Path, 'responses'> as IfNever<
           JsonResponseOf<Path, Code>,
-          unknown,
-          JsonResponseOf<Path, Code>
-        >;
-      };
-    }>
+          never,
+          Code
+        >]: {
+          ok: Code extends IntRange<200, 300> ? true : false;
+          status: Code;
+          json(): JsonResponseOf<Path, Code>;
+        };
+      } & {
+        [Code in keyof Get<Path, 'responses'> as IfNever<
+          JsonResponseOf<Path, Code>,
+          Code,
+          never
+        >]: {
+          ok: Code extends IntRange<200, 300> ? true : false;
+          status: Code;
+        };
+      }
+    >
 >;
 
 export type PathParamsOf<Path> = Get<Path, 'parameters.path'>;
