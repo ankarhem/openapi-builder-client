@@ -1,28 +1,36 @@
-import { Fetcher, FetcherOptions, MiddlewareFunction } from './types';
+import { SetRequired } from 'type-fest';
+import { Fetcher, FetcherOptions } from './types';
 
 export class OwnedFetcher {
   private sender: Fetcher;
-  private condition?: (response: Response) => boolean;
+  private options: SetRequired<FetcherOptions, 'retries' | 'middlewares'>;
 
-  constructor({ fetcher, condition }: FetcherOptions) {
-    this.sender = fetcher;
-    this.condition = condition;
+  constructor(options: FetcherOptions) {
+    this.sender = options.fetcher;
+    this.options = {
+      retries: 0,
+      middlewares: [],
+      ...options,
+    };
+
+    return this.withRetries().withMiddlewares();
   }
 
-  withRetries(retries: number) {
-    if (retries <= 0) return this;
+  private withRetries = () => {
+    if (this.options.retries <= 0) return this;
 
+    const currentSender = this.sender;
     const fetchWithRetries = async (
       url: string,
       init: RequestInit,
       retryCount: number = 0
     ): ReturnType<Fetcher> => {
-      const canRetry = Math.max(retryCount, 0) < (retries || 0);
+      const canRetry = Math.max(retryCount, 0) < this.options.retries;
       try {
-        const response = await this.send(url, init);
+        const response = await currentSender(url, init);
         if (
-          typeof this.condition === 'function' &&
-          !this.condition(response) &&
+          typeof this.options.condition === 'function' &&
+          !this.options.condition(response) &&
           canRetry
         ) {
           return await fetchWithRetries(url, init, retryCount + 1);
@@ -36,34 +44,31 @@ export class OwnedFetcher {
       }
     };
 
-    return new OwnedFetcher({
-      fetcher: fetchWithRetries,
-      condition: this.condition,
-    });
-  }
+    this.sender = fetchWithRetries;
+    return this;
+  };
 
-  withMiddlewares(middlewares: MiddlewareFunction[]) {
-    if (middlewares.length === 0) return this;
+  private withMiddlewares = () => {
+    if (this.options.middlewares.length === 0) return this;
 
+    const currentSender = this.sender;
     const fetchWithMiddlewares = (
       url: string,
       init: RequestInit,
       index: number = 0
     ): ReturnType<Fetcher> => {
-      if (!middlewares || index === middlewares.length) {
-        return this.sender(url, init);
+      if (index === this.options.middlewares.length) {
+        return currentSender(url, init);
       }
-      const current = middlewares?.[index];
+      const current = this.options.middlewares?.[index];
       return current(url, init, (nextUrl, nextInit) =>
         fetchWithMiddlewares(nextUrl, nextInit, index + 1)
       );
     };
 
-    return new OwnedFetcher({
-      fetcher: fetchWithMiddlewares,
-      condition: this.condition,
-    });
-  }
+    this.sender = fetchWithMiddlewares;
+    return this;
+  };
 
   send(url: string, init: RequestInit) {
     return this.sender(url, init);

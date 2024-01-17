@@ -1,4 +1,3 @@
-import { SetRequired } from 'type-fest';
 import { OwnedFetcher } from './fetcher';
 import { OwnedRequest } from './request';
 import {
@@ -13,23 +12,11 @@ import {
 } from './types';
 
 export class Client<OpenAPIPaths> {
-  private options: SetRequired<
-    ClientOptions,
-    'formFormatter' | 'retries' | 'middlewares'
-  >;
+  private options: ClientOptions;
   private ownedFetcher: OwnedFetcher;
   constructor(options: ClientOptions) {
-    this.options = {
-      retries: 0,
-      middlewares: [],
-      ...options,
-    };
-    this.ownedFetcher = new OwnedFetcher({
-      fetcher: this.options.fetcher,
-      condition: this.options.condition,
-    })
-      .withRetries(this.options.retries)
-      .withMiddlewares(this.options.middlewares);
+    this.options = options;
+    this.ownedFetcher = new OwnedFetcher(options);
   }
 
   /**

@@ -1,8 +1,7 @@
 import { expect, test, describe, mock, Mock } from 'bun:test';
 import { fetcherWith200Response, mockedClient } from './utils';
-import { Fetcher, MiddlewareFunction } from '../src';
+import { Fetcher, MiddlewareFunction, ConditionFunction } from '../src';
 import { joinFormatter, pathFormatter } from '../src/search';
-import { ResponseCondition } from '../src/types';
 
 describe('Methods', () => {
   const anyClient = mockedClient as any;
@@ -307,7 +306,7 @@ describe('Retries', () => {
       status: 500,
     });
   };
-  const no500StatusCondition: ResponseCondition = (response) => {
+  const no500StatusCondition: ConditionFunction = (response) => {
     return response.status < 500;
   };
 
