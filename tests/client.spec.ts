@@ -1,7 +1,8 @@
 import { expect, test, describe, mock, Mock } from 'bun:test';
-import { mockedClient } from './utils';
+import { fetcherWith200Response, mockedClient } from './utils';
 import { Fetcher, MiddlewareFunction } from '../src';
 import { joinFormatter, pathFormatter } from '../src/search';
+import { ResponseCondition } from '../src/types';
 
 describe('Methods', () => {
   const anyClient = mockedClient as any;
@@ -298,41 +299,146 @@ describe('Middleware', () => {
 });
 
 describe('Retries', () => {
-  const throwingFetcher: Fetcher = (url, init) => {
+  const throwingFetcher: Fetcher = async (url, init) => {
     throw new Error('');
   };
-
-  test('Will retry if request throws', async () => {
-    const mockedThrowingFetcher: Mock<Fetcher> = mock(throwingFetcher);
-    const client = mockedClient.with({
-      fetcher: mockedThrowingFetcher,
-      retries: 1,
+  const fetcherWith500Response: Fetcher = async (url, init) => {
+    return new Response(undefined, {
+      status: 500,
     });
-    expect(mockedThrowingFetcher).toHaveBeenCalledTimes(0);
-    await client
-      .get('/pet/findByStatus')
-      .send()
-      .catch(() => {});
-    expect(mockedThrowingFetcher).toHaveBeenCalledTimes(2);
+  };
+  const no500StatusCondition: ResponseCondition = (response) => {
+    return response.status < 500;
+  };
+
+  describe('Thrown requests', () => {
+    test('Will retry if retries > 0', async () => {
+      const mockedThrowingFetcher: Mock<Fetcher> = mock(throwingFetcher);
+      const client = mockedClient.with({
+        fetcher: mockedThrowingFetcher,
+        retries: 1,
+      });
+      expect(mockedThrowingFetcher).toHaveBeenCalledTimes(0);
+      await client
+        .get('/pet/findByStatus')
+        .send()
+        .catch(() => {});
+      expect(mockedThrowingFetcher).toHaveBeenCalledTimes(2);
+    });
+
+    test('Wont retry if retries = 0', async () => {
+      const mockedThrowingFetcher: Mock<Fetcher> = mock(throwingFetcher);
+      const client = mockedClient.with({
+        fetcher: mockedThrowingFetcher,
+        retries: 0,
+      });
+      expect(mockedThrowingFetcher).toHaveBeenCalledTimes(0);
+      await client
+        .get('/pet/findByStatus')
+        .send()
+        .catch(() => {});
+      expect(mockedThrowingFetcher).toHaveBeenCalledTimes(1);
+    });
   });
 
-  test('Middlewares are only called once', async () => {
-    const middleware: Mock<MiddlewareFunction> = mock((url, init, next) => {
-      return next(url, init);
+  describe('Failed condition', () => {
+    test('Will retry if retries > 0', async () => {
+      const mockedFetcherWith500Response: Mock<Fetcher> = mock(
+        fetcherWith500Response
+      );
+      const client = mockedClient.with({
+        fetcher: mockedFetcherWith500Response,
+        retries: 1,
+        condition: no500StatusCondition,
+      });
+      expect(mockedFetcherWith500Response).toHaveBeenCalledTimes(0);
+      await client.get('/pet/findByStatus').send();
+      expect(mockedFetcherWith500Response).toHaveBeenCalledTimes(2);
     });
 
-    const client = mockedClient.with({
-      middlewares: [middleware],
-      fetcher: throwingFetcher,
-      retries: 1,
+    test('Wont retry if retries = 0', async () => {
+      const mockedFetcherWith500Response: Mock<Fetcher> = mock(
+        fetcherWith500Response
+      );
+      const client = mockedClient.with({
+        fetcher: mockedFetcherWith500Response,
+        retries: 0,
+        condition: no500StatusCondition,
+      });
+      expect(mockedFetcherWith500Response).toHaveBeenCalledTimes(0);
+      await client.get('/pet/findByStatus').send();
+      expect(mockedFetcherWith500Response).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Passed condition', () => {
+    test('Wont retry if retries > 0', async () => {
+      const mockedFetcherWith200Response: Mock<Fetcher> = mock(
+        fetcherWith200Response
+      );
+      const client = mockedClient.with({
+        fetcher: mockedFetcherWith200Response,
+        retries: 1,
+        condition: no500StatusCondition,
+      });
+      expect(mockedFetcherWith200Response).toHaveBeenCalledTimes(0);
+      await client.get('/pet/findByStatus').send();
+      expect(mockedFetcherWith200Response).toHaveBeenCalledTimes(1);
     });
 
-    expect(middleware).toHaveBeenCalledTimes(0);
-    await client
-      .get('/pet/findByStatus')
-      .send()
-      .catch(() => {});
-    expect(middleware).toHaveBeenCalledTimes(1);
+    test('Wont retry if retries = 0', async () => {
+      const mockedFetcherWith200Response: Mock<Fetcher> = mock(
+        fetcherWith200Response
+      );
+      const client = mockedClient.with({
+        fetcher: mockedFetcherWith200Response,
+        retries: 0,
+        condition: no500StatusCondition,
+      });
+      expect(mockedFetcherWith200Response).toHaveBeenCalledTimes(0);
+      await client.get('/pet/findByStatus').send();
+      expect(mockedFetcherWith200Response).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Middlewares', () => {
+    test('Called once for thrown retries', async () => {
+      const middleware: Mock<MiddlewareFunction> = mock((url, init, next) => {
+        return next(url, init);
+      });
+
+      const client = mockedClient.with({
+        middlewares: [middleware],
+        fetcher: throwingFetcher,
+        retries: 1,
+      });
+
+      expect(middleware).toHaveBeenCalledTimes(0);
+      await client
+        .get('/pet/findByStatus')
+        .send()
+        .catch(() => {});
+      expect(middleware).toHaveBeenCalledTimes(1);
+    });
+    test('Called once for status retries', async () => {
+      const middleware: Mock<MiddlewareFunction> = mock((url, init, next) => {
+        return next(url, init);
+      });
+
+      const client = mockedClient.with({
+        middlewares: [middleware],
+        fetcher: fetcherWith500Response,
+        condition: no500StatusCondition,
+        retries: 1,
+      });
+
+      expect(middleware).toHaveBeenCalledTimes(0);
+      await client
+        .get('/pet/findByStatus')
+        .send()
+        .catch(() => {});
+      expect(middleware).toHaveBeenCalledTimes(1);
+    });
   });
 });
 

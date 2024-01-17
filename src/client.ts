@@ -24,7 +24,10 @@ export class Client<OpenAPIPaths> {
       middlewares: [],
       ...options,
     };
-    this.ownedFetcher = new OwnedFetcher(options.fetcher)
+    this.ownedFetcher = new OwnedFetcher({
+      fetcher: this.options.fetcher,
+      condition: this.options.condition,
+    })
       .withRetries(this.options.retries)
       .withMiddlewares(this.options.middlewares);
   }

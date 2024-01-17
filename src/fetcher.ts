@@ -1,9 +1,12 @@
-import { Fetcher, MiddlewareFunction } from './types';
+import { Fetcher, FetcherOptions, MiddlewareFunction } from './types';
 
 export class OwnedFetcher {
   private sender: Fetcher;
-  constructor(fetcher: Fetcher) {
+  private condition?: (response: Response) => boolean;
+
+  constructor({ fetcher, condition }: FetcherOptions) {
     this.sender = fetcher;
+    this.condition = condition;
   }
 
   withRetries(retries: number) {
@@ -14,17 +17,29 @@ export class OwnedFetcher {
       init: RequestInit,
       retryCount: number = 0
     ): ReturnType<Fetcher> => {
+      const canRetry = Math.max(retryCount, 0) < (retries || 0);
       try {
-        return await this.send(url, init);
+        const response = await this.send(url, init);
+        if (
+          typeof this.condition === 'function' &&
+          !this.condition(response) &&
+          canRetry
+        ) {
+          return await fetchWithRetries(url, init, retryCount + 1);
+        }
+        return response;
       } catch (error) {
-        if (retryCount < (retries || 0)) {
+        if (canRetry) {
           return await fetchWithRetries(url, init, retryCount + 1);
         }
         throw error;
       }
     };
 
-    return new OwnedFetcher(fetchWithRetries);
+    return new OwnedFetcher({
+      fetcher: fetchWithRetries,
+      condition: this.condition,
+    });
   }
 
   withMiddlewares(middlewares: MiddlewareFunction[]) {
@@ -44,7 +59,10 @@ export class OwnedFetcher {
       );
     };
 
-    return new OwnedFetcher(fetchWithMiddlewares);
+    return new OwnedFetcher({
+      fetcher: fetchWithMiddlewares,
+      condition: this.condition,
+    });
   }
 
   send(url: string, init: RequestInit) {

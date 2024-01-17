@@ -99,14 +99,22 @@ export interface Fetcher {
 
 export type FormFormatter = (json: Record<string, any>) => FormData;
 
-export type ClientOptions = {
-  baseUrl: string;
-  headers?: Record<string, string>;
+export type ResponseCondition = (response: Response) => boolean;
+
+export type FetcherOptions = {
   fetcher: Fetcher;
-  middlewares?: MiddlewareFunction[];
-  retries?: number;
-  formFormatter: FormFormatter;
+  condition?: ResponseCondition;
 };
+
+export type ClientOptions = Simplify<
+  FetcherOptions & {
+    baseUrl: string;
+    headers?: Record<string, string>;
+    middlewares?: MiddlewareFunction[];
+    retries?: number;
+    formFormatter: FormFormatter;
+  }
+>;
 
 export type MiddlewareFunction = (
   url: string,
