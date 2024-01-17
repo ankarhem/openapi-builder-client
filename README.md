@@ -110,7 +110,7 @@ At any given time you can override the default client configuration.
 import { client } from './client.ts'
 
 async function iFetchData() {
-  const response = client
+  const response = await client
     .with({
       /**
        * Override any of the original settings
