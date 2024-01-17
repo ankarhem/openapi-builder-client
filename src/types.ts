@@ -105,7 +105,7 @@ export type FetcherOptions = {
   fetcher: Fetcher;
   retries?: number;
   middlewares?: MiddlewareFunction[];
-  condition?: ConditionFunction;
+  additionalRetryCondition?: ConditionFunction;
 };
 
 export type ClientOptions = Simplify<

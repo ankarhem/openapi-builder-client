@@ -47,9 +47,14 @@ export const client = new Client<paths>({
   formFormatter: htmlFormatter, 
   fetcher: fetch, // Bring your own fetcher
   /**
-   * Customize retries in case fetcher throws
+   * Customize retries in case fetcher rejects/throws
    */
   retries: 0,
+  /**
+   * Add additional retry condition.
+   * Will not change reject/throwing behaviour.
+   */
+  additionalRetryCondition: (response) => response.status < 500,
   /**
    * Add middlewares to log or modify the requests
    */

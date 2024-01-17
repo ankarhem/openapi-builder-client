@@ -348,7 +348,7 @@ describe('Retries', () => {
       const client = mockedClient.with({
         fetcher: mockedFetcherWith500Response,
         retries: 1,
-        condition: no500StatusCondition,
+        additionalRetryCondition: no500StatusCondition,
       });
       expect(mockedFetcherWith500Response).toHaveBeenCalledTimes(0);
       await client.get('/pet/findByStatus').send();
@@ -362,7 +362,7 @@ describe('Retries', () => {
       const client = mockedClient.with({
         fetcher: mockedFetcherWith500Response,
         retries: 0,
-        condition: no500StatusCondition,
+        additionalRetryCondition: no500StatusCondition,
       });
       expect(mockedFetcherWith500Response).toHaveBeenCalledTimes(0);
       await client.get('/pet/findByStatus').send();
@@ -378,7 +378,7 @@ describe('Retries', () => {
       const client = mockedClient.with({
         fetcher: mockedFetcherWith200Response,
         retries: 1,
-        condition: no500StatusCondition,
+        additionalRetryCondition: no500StatusCondition,
       });
       expect(mockedFetcherWith200Response).toHaveBeenCalledTimes(0);
       await client.get('/pet/findByStatus').send();
@@ -392,7 +392,7 @@ describe('Retries', () => {
       const client = mockedClient.with({
         fetcher: mockedFetcherWith200Response,
         retries: 0,
-        condition: no500StatusCondition,
+        additionalRetryCondition: no500StatusCondition,
       });
       expect(mockedFetcherWith200Response).toHaveBeenCalledTimes(0);
       await client.get('/pet/findByStatus').send();
@@ -427,7 +427,7 @@ describe('Retries', () => {
       const client = mockedClient.with({
         middlewares: [middleware],
         fetcher: fetcherWith500Response,
-        condition: no500StatusCondition,
+        additionalRetryCondition: no500StatusCondition,
         retries: 1,
       });
 

@@ -29,8 +29,8 @@ export class OwnedFetcher {
       try {
         const response = await currentSender(url, init);
         if (
-          typeof this.options.condition === 'function' &&
-          !this.options.condition(response) &&
+          typeof this.options.additionalRetryCondition === 'function' &&
+          !this.options.additionalRetryCondition(response) &&
           canRetry
         ) {
           return await fetchWithRetries(url, init, retryCount + 1);
