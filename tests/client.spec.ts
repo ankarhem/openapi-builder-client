@@ -338,6 +338,24 @@ describe('Retries', () => {
         .catch(() => {});
       expect(mockedThrowingFetcher).toHaveBeenCalledTimes(1);
     });
+
+    test('Wont retry if request aborted', async () => {
+      const abortController = new AbortController();
+      const mockedRealFetch: Mock<Fetcher> = mock(fetch);
+      const client = mockedClient.with({
+        fetcher: mockedRealFetch,
+        retries: 1,
+      });
+      abortController.abort();
+
+      expect(mockedRealFetch).toHaveBeenCalledTimes(0);
+      await client
+        .with({ baseUrl: 'https://this-domain-will-cause-dns-error.com' })
+        .get('/pet/findByStatus')
+        .send({ signal: abortController.signal })
+        .catch(() => {});
+      expect(mockedRealFetch).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('Failed condition', () => {

@@ -161,4 +161,5 @@ export interface OwnedRequestState {
   query: Record<string, any>;
   headers: Record<string, string | readonly string[]>;
   body: Record<string, any> | undefined;
+  extras?: Pick<RequestInit, 'signal'>;
 }

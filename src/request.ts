@@ -17,6 +17,7 @@ export class OwnedRequest<Path, UsedMethods extends string = ''> {
     query: {},
     headers: {},
     body: undefined,
+    extras: undefined,
   };
 
   private _send: (state: OwnedRequestState) => Promise<ResponseOf<Path>>;
@@ -87,7 +88,8 @@ export class OwnedRequest<Path, UsedMethods extends string = ''> {
     return this.headers(headers as any);
   }
 
-  send() {
+  send(extras?: Pick<RequestInit, 'signal'>) {
+    this.state.extras = extras;
     return this._send(this.state);
   }
 }

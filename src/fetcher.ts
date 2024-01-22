@@ -37,10 +37,12 @@ export class OwnedFetcher {
         }
         return response;
       } catch (error) {
-        if (canRetry) {
-          return await fetchWithRetries(url, init, retryCount + 1);
+        if (!canRetry) throw error;
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          throw error;
         }
-        throw error;
+
+        return await fetchWithRetries(url, init, retryCount + 1);
       }
     };
 

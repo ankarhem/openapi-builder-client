@@ -67,6 +67,7 @@ export class Client<OpenAPIPaths> {
         ...this.options.headers,
         ...state.headers,
       },
+      ...state.extras,
     };
 
     return this.ownedFetcher.send(url.toString(), init) as Promise<any>;
