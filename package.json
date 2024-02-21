@@ -1,6 +1,6 @@
 {
   "name": "openapi-builder-client",
-  "version": "0.1.8",
+  "version": "0.1.11",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -13,18 +13,21 @@
     ".": "./dist/src/index.js",
     "./formatters": "./dist/src/search.js"
   },
-  "devDependencies": {
-    "bun-types": "latest",
+  "dependencies": {
     "type-fest": "^4.9.0"
+  },
+  "devDependencies": {
+    "bun-types": "latest"
   },
   "peerDependencies": {
     "typescript": "^5.0.0",
     "type-fest": "^4.9.0"
   },
   "scripts": {
-    "postinstall": "npx openapi-typescript https://petstore3.swagger.io/api/v3/openapi.json --output ./openapi/petstore.ts",
-    "prepublishOnly": "bun test && bun run build && npx publint",
+    "generate": "npx openapi-typescript https://petstore3.swagger.io/api/v3/openapi.json --output ./openapi/petstore.ts",
+    "prepublishOnly": "bun test && bun run build && bun run lint",
     "typecheck": "tsc -b",
+    "lint": "bunx oxlint@latest && npx publint",
     "build": "tsc -p tsconfig.build.json"
   },
   "author": {

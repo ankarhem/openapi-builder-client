@@ -7,7 +7,7 @@ import {
   QueryParamsOf,
   ResponseOf,
   FormDataOf,
-} from './types';
+} from './types.js';
 
 type BodyMethods = 'body' | 'form';
 

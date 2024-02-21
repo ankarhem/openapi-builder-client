@@ -1,4 +1,4 @@
-import { FormFormatter } from './types';
+import { FormFormatter } from './types.js';
 
 /**
  * Behaves like a submitted html form.

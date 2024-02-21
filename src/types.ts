@@ -10,7 +10,7 @@ import {
   Simplify,
   ValueOf,
 } from 'type-fest';
-import { OwnedRequest } from './request';
+import { OwnedRequest } from './request.js';
 
 export type Method = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
@@ -159,7 +159,7 @@ export type NextOwnedRequest<Path, UsedMethods extends string> = Exclude<
 export interface OwnedRequestState {
   path: Record<string, string | number>;
   query: Record<string, any>;
-  headers: Record<string, string | readonly string[]>;
+  headers: Record<string, string>;
   body: Record<string, any> | undefined;
   extras?: Pick<RequestInit, 'signal'>;
 }
