@@ -1,7 +1,7 @@
 import { expect, test, describe, mock, Mock } from 'bun:test';
 import { fetcherWith200Response, mockedClient } from './utils';
 import { Fetcher, MiddlewareFunction, ConditionFunction } from '../src';
-import { joinFormatter, pathFormatter } from '../src/search';
+import { joinFormatter, pathFormatter } from '../src/formatters';
 
 describe('Methods', () => {
   const anyClient = mockedClient as any;
@@ -245,12 +245,12 @@ describe('Middleware', () => {
   test('Can modify request with middleware', async () => {
     const middleware: Mock<MiddlewareFunction> = mock((url, init, next) => {
       const body = 'bodyString';
+      const headers = new Headers(init.headers);
+      headers.set('x-middleware', 'yes');
+
       return next('https://google.com', {
         ...init,
-        headers: {
-          ...init.headers,
-          'x-middleware': 'yes',
-        },
+        headers: headers,
         body: body,
       });
     });
@@ -259,9 +259,7 @@ describe('Middleware', () => {
         middlewares: [middleware],
         fetcher: async (url, init) => {
           expect(init?.body).toBe('bodyString');
-          expect(init?.headers).toEqual({
-            'x-middleware': 'yes',
-          });
+          expect(init?.headers).toEqual(new Headers({ 'x-middleware': 'yes' }));
           return new Response();
         },
       })

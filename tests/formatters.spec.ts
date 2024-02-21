@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { htmlFormatter, joinFormatter, pathFormatter } from '../src/search';
+import { htmlFormatter, joinFormatter, pathFormatter } from '../src/formatters';
 import { mockedClient } from './utils';
 
 describe('defaultFormatter', () => {

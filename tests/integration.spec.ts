@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { mockedClient } from './utils';
-import { joinFormatter } from '../src/search';
+import { joinFormatter } from '../src/formatters';
 
 const client = mockedClient.with({
   fetcher: fetch,

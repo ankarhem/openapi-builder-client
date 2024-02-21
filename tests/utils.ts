@@ -1,6 +1,6 @@
 import type { paths } from '../openapi/petstore';
 import { Client, Fetcher } from '../src';
-import { htmlFormatter } from '../src/search';
+import { htmlFormatter } from '../src/formatters';
 
 export const fetcherWith200Response: Fetcher = async (url, init) =>
   new Response(undefined, { status: 200 });

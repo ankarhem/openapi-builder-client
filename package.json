@@ -1,6 +1,6 @@
 {
   "name": "openapi-builder-client",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -10,8 +10,8 @@
     "README.md"
   ],
   "exports": {
-    ".": "./dist/src/index.js",
-    "./formatters": "./dist/src/search.js"
+    ".": "./dist/index.js",
+    "./formatters": "./dist/formatters.js"
   },
   "dependencies": {
     "type-fest": "^4.9.0"
@@ -25,10 +25,10 @@
   },
   "scripts": {
     "generate": "npx openapi-typescript https://petstore3.swagger.io/api/v3/openapi.json --output ./openapi/petstore.ts",
-    "prepublishOnly": "bun test && bun run build && bun run lint",
+    "prepublishOnly": "bun run build && bun test && bun run lint",
     "typecheck": "tsc -b",
     "lint": "bunx oxlint@latest && npx publint",
-    "build": "tsc -p tsconfig.build.json"
+    "build": "rm -rf dist && tsc -p tsconfig.build.json"
   },
   "author": {
     "name": "Jakob Ankarhem",
