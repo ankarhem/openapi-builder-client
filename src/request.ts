@@ -88,7 +88,7 @@ export class OwnedRequest<Path, UsedMethods extends string = ''> {
     return this.headers(headers as any);
   }
 
-  send(extras?: Pick<RequestInit, 'signal'>) {
+  send(extras?: Pick<RequestInit, 'signal'>): Promise<ResponseOf<Path>> {
     this.state.extras = extras;
     return this._send(this.state);
   }

@@ -16,9 +16,6 @@
   "dependencies": {
     "type-fest": "^4.9.0"
   },
-  "devDependencies": {
-    "bun-types": "latest"
-  },
   "peerDependencies": {
     "typescript": "^5.0.0",
     "type-fest": "^4.9.0"
