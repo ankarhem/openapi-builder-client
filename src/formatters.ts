@@ -1,4 +1,4 @@
-import { FormFormatter } from './types.js';
+import type { FormFormatter } from './types';
 
 /**
  * Behaves like a submitted html form.
@@ -36,13 +36,13 @@ export const htmlFormatter: FormFormatter = (data) => {
       continue;
     }
 
-    if (typeof value === 'object') {
-      formData.append(key, JSON.stringify(value));
+    if (value instanceof File) {
+      formData.append(key, value);
       continue;
     }
 
-    if (value instanceof File) {
-      formData.append(key, value);
+    if (typeof value === 'object') {
+      formData.append(key, JSON.stringify(value));
       continue;
     }
 
@@ -88,13 +88,13 @@ export const joinFormatter: FormFormatter = (data) => {
       continue;
     }
 
-    if (typeof value === 'object') {
-      formData.append(key, JSON.stringify(value));
+    if (value instanceof File) {
+      formData.append(key, value);
       continue;
     }
 
-    if (value instanceof File) {
-      formData.append(key, value);
+    if (typeof value === 'object') {
+      formData.append(key, JSON.stringify(value));
       continue;
     }
 
@@ -135,16 +135,16 @@ class PathFormatter {
         continue;
       }
 
+      if (value instanceof File) {
+        flattenedObject[key] = value as File;
+        continue;
+      }
+
       if (typeof value === 'object') {
         flattenedObject = {
           ...flattenedObject,
           ...PathFormatter.flatten(value, `${key}.`),
         };
-        continue;
-      }
-
-      if (value instanceof File) {
-        flattenedObject[key] = value;
         continue;
       }
 

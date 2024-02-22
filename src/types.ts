@@ -1,4 +1,4 @@
-import {
+import type {
   ConditionalExcept,
   Get,
   IfNever,
@@ -10,7 +10,7 @@ import {
   Simplify,
   ValueOf,
 } from 'type-fest';
-import { OwnedRequest } from './request.js';
+import { OwnedRequest } from './request';
 
 export type Method = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 

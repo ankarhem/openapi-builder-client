@@ -1,5 +1,5 @@
 import { test } from 'bun:test';
-import { mockedClient } from './utils';
+import { mockedClient } from './utils.test';
 
 test('Exposes all override methods by default', () => {
   mockedClient

@@ -1,4 +1,4 @@
-import {
+import type {
   JsonBodyOf,
   HeaderParamsOf,
   NextOwnedRequest,
@@ -7,7 +7,7 @@ import {
   QueryParamsOf,
   ResponseOf,
   FormDataOf,
-} from './types.js';
+} from './types';
 
 type BodyMethods = 'body' | 'form';
 

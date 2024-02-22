@@ -1,5 +1,5 @@
 import { expect, test, describe, mock, Mock } from 'bun:test';
-import { fetcherWith200Response, mockedClient } from './utils';
+import { fetcherWith200Response, mockedClient } from './utils.test';
 import { Fetcher, MiddlewareFunction, ConditionFunction } from '../src';
 import { joinFormatter, pathFormatter } from '../src/formatters';
 

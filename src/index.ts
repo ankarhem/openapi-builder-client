@@ -1,5 +1,5 @@
-import { Client } from './client.js';
-import {
+import { Client } from './client';
+import type {
   Fetcher,
   ClientOptions,
   MiddlewareFunction,

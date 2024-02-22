@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { htmlFormatter, joinFormatter, pathFormatter } from '../src/formatters';
-import { mockedClient } from './utils';
+import { mockedClient } from './utils.test';
 
 describe('defaultFormatter', () => {
   test('Handles basic data', () => {
@@ -16,6 +16,13 @@ describe('defaultFormatter', () => {
     expect(form.get('boolean')).toBe('true');
     expect(form.get('string')).toBe('hello');
     expect(form.get('float')).toBe('2.1');
+  });
+
+  test('Appends file as is', () => {
+    const file = new File([''], 'file.txt');
+    const form = htmlFormatter({ file });
+
+    expect(form.get('file')).toEqual(file);
   });
 
   test('Does not join array values', () => {
@@ -72,6 +79,13 @@ describe('joinFormatter', () => {
     expect(form.get('float')).toBe('2.1');
   });
 
+  test('Appends file as is', () => {
+    const file = new File([''], 'file.txt');
+    const form = joinFormatter({ file });
+
+    expect(form.get('file')).toEqual(file);
+  });
+
   test('Joins array values', () => {
     const data = {
       array: [1, 2],
@@ -111,6 +125,13 @@ describe('pathFormatter', () => {
     expect(form.get('boolean')).toBe('true');
     expect(form.get('string')).toBe('hello');
     expect(form.get('float')).toBe('2.1');
+  });
+
+  test('Appends file as is', () => {
+    const file = new File([''], 'file.txt');
+    const form = pathFormatter({ file });
+
+    expect(form.get('file')).toEqual(file);
   });
 
   test('Adds path index to key', () => {

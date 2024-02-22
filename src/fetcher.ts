@@ -1,5 +1,5 @@
-import { SetRequired } from 'type-fest';
-import { Fetcher, FetcherOptions } from './types.js';
+import type { SetRequired } from 'type-fest';
+import type { Fetcher, FetcherOptions } from './types';
 
 export class OwnedFetcher {
   private sender: Fetcher;
