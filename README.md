@@ -130,3 +130,18 @@ async function iFetchData() {
 ```bash
 bun install
 ```
+
+## Code Coverage
+
+```bash
+bun test
+```
+
+| File             | % Funcs | % Lines | Uncovered Line #s |
+|------------------|---------|---------|-------------------|
+| All files        |  96.46  |  99.62  |                   |
+| src/client.ts    | 100.00  | 100.00  |                   |
+| src/fetcher.ts   | 100.00  | 100.00  |                   |
+| src/formatters.ts|  90.00  | 100.00  |                   |
+| src/index.ts     | 100.00  | 100.00  |                   |
+| src/request.ts   |  92.31  |  98.08  |                   |
