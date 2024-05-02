@@ -1,15 +1,7 @@
-import { describe, expect, test } from 'bun:test';
-import { mockedClient } from './utils.test';
+import { afterAll, beforeAll, describe, expect, test } from 'vitest';
+import { debugFetcher, invariant, mockedClient } from './utils';
 import { joinFormatter } from '../src/formatters';
-
-const client = mockedClient.with({
-  fetcher: fetch,
-  // fetcher: debugFetcher,
-  formFormatter: joinFormatter,
-  headers: {
-    Accept: 'application/json',
-  },
-});
+import { GenericContainer, StartedTestContainer } from 'testcontainers';
 
 const PET = {
   id: 10,
@@ -29,41 +21,68 @@ const PET = {
 };
 
 describe('Basic requests', () => {
-  test('POST', async () => {
-    const response = await client.post('/pet').body(PET).send();
-    expect(response.ok).toBeTrue();
+  let container: StartedTestContainer;
+  let client: typeof mockedClient;
 
-    if (response.ok) {
-      const data = await response.json();
-      expect(data.name).toBe('doggie');
-    }
+  beforeAll(async () => {
+    container = await new GenericContainer('swaggerapi/petstore:1.0.7')
+      .withEnvironment({
+        SWAGGER_HOST: 'http://petstore.swagger.io',
+        SWAGGER_URL: 'http://localhost:8080',
+      })
+      .withExposedPorts(8080)
+      .start();
+
+    client = mockedClient.with({
+      baseUrl: `http://${container.getHost()}:${container.getMappedPort(
+        8080
+      )}/api`,
+      fetcher: fetch,
+      // fetcher: debugFetcher,
+      formFormatter: joinFormatter,
+      headers: {
+        Accept: 'application/json',
+      },
+    });
+  }, 60_000);
+
+  afterAll(async () => {
+    await container.stop();
   });
+
   test('GET', async () => {
     const response = await client
       .get('/pet/{petId}')
-      .path({ petId: 10 })
+      .path({ petId: PET.id })
       .send();
-    expect(response.ok).toBeTrue();
+
+    invariant(response.ok);
+    const data = await response.json();
+    expect(data).toMatchSnapshot();
   });
   test('PUT', async () => {
     const response = await client.put('/pet').body(PET).send();
 
-    expect(response.ok).toBeTrue();
-
-    if (response.ok) {
-      const data = await response.json();
-      expect(data.name).toBe('doggie');
-    }
+    invariant(response.ok);
+    const data = await response.json();
+    expect(data).toMatchSnapshot();
   });
   test('DELETE', async () => {
     const response = await client
       .delete('/pet/{petId}')
-      .path({ petId: 10 })
+      .path({ petId: PET.id })
       .headers({
         api_key: '123',
       })
       .send();
 
-    expect(response.ok).toBeTrue();
+    expect(response.ok).toBeTruthy();
+  });
+  test('POST', async () => {
+    const response = await client.post('/pet').body(PET).send();
+    invariant(response.ok);
+
+    const data = await response.json();
+    expect(data).toMatchSnapshot();
   });
 });

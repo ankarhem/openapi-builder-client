@@ -17,7 +17,9 @@
     "type-fest": "^4.9.0"
   },
   "devDependencies": {
-    "@types/bun": "^1.0.6"
+    "@vitest/coverage-v8": "^1.5.3",
+    "testcontainers": "^10.9.0",
+    "vitest": "^1.5.3"
   },
   "peerDependencies": {
     "typescript": "^5.0.0",
@@ -28,7 +30,9 @@
     "prepublishOnly": "bun run build && bun test && bun run lint",
     "typecheck": "tsc -b",
     "lint": "bunx oxlint@latest && npx publint",
-    "build": "rm -rf dist && tsc -p tsconfig.build.json"
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "test": "vitest",
+    "coverage": "vitest --coverage"
   },
   "author": {
     "name": "Jakob Ankarhem",

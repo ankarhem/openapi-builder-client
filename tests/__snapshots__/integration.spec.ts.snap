@@ -1,0 +1,69 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Basic requests > GET 1`] = `
+{
+  "category": {
+    "id": 3,
+    "name": "Rabbits",
+  },
+  "id": 10,
+  "name": "Rabbit 1",
+  "photoUrls": [
+    "url1",
+    "url2",
+  ],
+  "status": "available",
+  "tags": [
+    {
+      "id": 1,
+      "name": "tag3",
+    },
+    {
+      "id": 2,
+      "name": "tag4",
+    },
+  ],
+}
+`;
+
+exports[`Basic requests > POST 1`] = `
+{
+  "category": {
+    "id": 1,
+    "name": "Dogs",
+  },
+  "id": 10,
+  "name": "doggie",
+  "photoUrls": [
+    "string",
+  ],
+  "status": "available",
+  "tags": [
+    {
+      "id": 0,
+      "name": "string",
+    },
+  ],
+}
+`;
+
+exports[`Basic requests > PUT 1`] = `
+{
+  "category": {
+    "id": 1,
+    "name": "Dogs",
+  },
+  "id": 10,
+  "name": "doggie",
+  "photoUrls": [
+    "string",
+  ],
+  "status": "available",
+  "tags": [
+    {
+      "id": 0,
+      "name": "string",
+    },
+  ],
+}
+`;

@@ -1,0 +1,3 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Retries > Thrown requests > Wont retry if request aborted 1`] = `[AbortError: This operation was aborted]`;

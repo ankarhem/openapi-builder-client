@@ -1,6 +1,6 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 import { htmlFormatter, joinFormatter, pathFormatter } from '../src/formatters';
-import { mockedClient } from './utils.test';
+import { mockedClient } from './utils';
 
 describe('defaultFormatter', () => {
   test('Handles basic data', () => {

@@ -24,6 +24,7 @@ pnpm add -D typescript@^5.0.0 type-fest@^4.9.0
 ## Examples
 
 Generate typescript types from an openapi spec
+
 ```bash
 npx openapi-typescript https://petstore3.swagger.io/api/v3/openapi.json --output ./openapi/petstore.ts
 ```
@@ -34,17 +35,17 @@ Then create a client
 // client.ts
 import { Client } from 'openapi-builder-client';
 import { htmlFormatter } from 'openapi-builder-client/formatters';
-import { paths } from './openapi/petstore.ts'
+import { paths } from './openapi/petstore.ts';
 
 export const client = new Client<paths>({
-  baseUrl: "https://petstore3.swagger.io/api/v3",
-  /** 
+  baseUrl: 'https://petstore3.swagger.io/api/v3',
+  /**
    * Customize whether you want arrays to append values
    * (`?categories=cat&categories=dog`) or join values
    * (`?categories=cat,dog`) or construct paths
    * (`?categories[0]=cat&categories[1]=dog) etc.
    */
-  formFormatter: htmlFormatter, 
+  formFormatter: htmlFormatter,
   fetcher: fetch, // Bring your own fetcher
   /**
    * Customize retries in case fetcher rejects/throws
@@ -69,7 +70,7 @@ export const client = new Client<paths>({
       });
     },
   ],
-})
+});
 ```
 
 The client will dynamically provide different methods that you can use.
@@ -82,7 +83,7 @@ Finally when you've set the minimal required data, you will be able to use `send
 
 ```typescript
 // anotherfile.ts
-import {client} from './client.ts'
+import { client } from './client.ts';
 
 async function iFetchData() {
   const response = await client
@@ -94,20 +95,22 @@ async function iFetchData() {
   // @ts-expect-error
   const data = await response.json();
 
-  if (response.ok) { // narrows json() type for statuses in ok range (200-299)
+  if (response.ok) {
+    // narrows json() type for statuses in ok range (200-299)
     const data = await response.json(); // works because status 200 - 299 have json
   }
 
-  if (response.status === 200) { // autocomplete for status
+  if (response.status === 200) {
+    // autocomplete for status
     const data = await response.json(); // works because status 200 has json
-  };
+  }
 }
 ```
 
 At any given time you can override the default client configuration.
 
 ```typescript
-import { client } from './client.ts'
+import { client } from './client.ts';
 
 async function iFetchData() {
   const response = await client
@@ -134,14 +137,15 @@ bun install
 ## Code Coverage
 
 ```bash
-bun test
+bun run coverage
 ```
 
-| File             | % Funcs | % Lines | Uncovered Line #s |
-|------------------|---------|---------|-------------------|
-| All files        |  96.46  |  99.62  |                   |
-| src/client.ts    | 100.00  | 100.00  |                   |
-| src/fetcher.ts   | 100.00  | 100.00  |                   |
-| src/formatters.ts|  90.00  | 100.00  |                   |
-| src/index.ts     | 100.00  | 100.00  |                   |
-| src/request.ts   |  92.31  |  98.08  |                   |
+| File          | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s |
+| ------------- | ------- | -------- | ------- | ------- | ----------------- |
+| All files     | 74.07   | 94.23    | 94.44   | 74.07   |
+| client.ts     | 99.18   | 95.45    | 100     | 99.18   | 81                |
+| fetcher.ts    | 100     | 100      | 100     | 100     |
+| formatters.ts | 100     | 90.9     | 100     | 100     | 25,76,112,121     |
+| index.ts      | 100     | 100      | 100     | 100     |
+| request.ts    | 97.89   | 100      | 92.85   | 97.89   | 75-76             |
+| types.ts      | 0       | 0        | 0       | 0       | 1-166             |

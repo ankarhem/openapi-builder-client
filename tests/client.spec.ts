@@ -1,6 +1,6 @@
-import { expect, test, describe, mock, Mock } from 'bun:test';
-import { fetcherWith200Response, mockedClient } from './utils.test';
-import { Fetcher, MiddlewareFunction, ConditionFunction } from '../src';
+import { expect, test, describe, Mock, vi } from 'vitest';
+import { fetcherWith200Response, mockedClient } from './utils';
+import { Fetcher, ConditionFunction } from '../src';
 import { joinFormatter, pathFormatter } from '../src/formatters';
 
 describe('Methods', () => {
@@ -182,7 +182,7 @@ describe('Body', () => {
       .with({
         fetcher: async (url, init) => {
           const body = init?.body?.valueOf();
-          expect(body).toBeString();
+          expect(body).toBeTypeOf('string');
           expect(JSON.parse(body as string)).toEqual({
             name: 'hello',
           });
@@ -231,9 +231,7 @@ describe('Form', () => {
 
 describe('Middleware', () => {
   test('Can add middleware', async () => {
-    const middleware: Mock<MiddlewareFunction> = mock((url, init, next) => {
-      return next(url, init);
-    });
+    const middleware = vi.fn();
     const client = mockedClient.with({
       middlewares: [middleware],
     });
@@ -243,7 +241,7 @@ describe('Middleware', () => {
   });
 
   test('Can modify request with middleware', async () => {
-    const middleware: Mock<MiddlewareFunction> = mock((url, init, next) => {
+    const middleware = vi.fn().mockImplementation((url, init, next) => {
       const body = 'bodyString';
       const headers = new Headers(init.headers);
       headers.set('x-middleware', 'yes');
@@ -269,17 +267,13 @@ describe('Middleware', () => {
   });
 
   test('Middleware are run in sequence', async () => {
-    const firstMiddleware: Mock<MiddlewareFunction> = mock(
-      (url, init, next) => {
-        return next('https://first.com', init);
-      }
-    );
-    const secondMiddleware: Mock<MiddlewareFunction> = mock(
-      (url, init, next) => {
-        expect(url).toBe('https://first.com');
-        return next('https://second.com', init);
-      }
-    );
+    const firstMiddleware = vi.fn().mockImplementation((url, init, next) => {
+      return next('https://first.com', init);
+    });
+    const secondMiddleware = vi.fn().mockImplementation((url, init, next) => {
+      expect(url).toBe('https://first.com');
+      return next('https://second.com', init);
+    });
     await mockedClient
       .with({
         middlewares: [firstMiddleware, secondMiddleware],
@@ -310,7 +304,7 @@ describe('Retries', () => {
 
   describe('Thrown requests', () => {
     test('Will retry if retries > 0', async () => {
-      const mockedThrowingFetcher: Mock<Fetcher> = mock(throwingFetcher);
+      const mockedThrowingFetcher = vi.fn().mockImplementation(throwingFetcher);
       const client = mockedClient.with({
         fetcher: mockedThrowingFetcher,
         retries: 1,
@@ -324,7 +318,7 @@ describe('Retries', () => {
     });
 
     test('Wont retry if retries = 0', async () => {
-      const mockedThrowingFetcher: Mock<Fetcher> = mock(throwingFetcher);
+      const mockedThrowingFetcher = vi.fn().mockImplementation(throwingFetcher);
       const client = mockedClient.with({
         fetcher: mockedThrowingFetcher,
         retries: 0,
@@ -339,7 +333,7 @@ describe('Retries', () => {
 
     test('Wont retry if request aborted', async () => {
       const abortController = new AbortController();
-      const mockedRealFetch: Mock<Fetcher> = mock(fetch);
+      const mockedRealFetch = vi.fn().mockImplementation(fetch);
       const client = mockedClient.with({
         fetcher: mockedRealFetch,
         retries: 1,
@@ -347,20 +341,21 @@ describe('Retries', () => {
       abortController.abort();
 
       expect(mockedRealFetch).toHaveBeenCalledTimes(0);
-      await client
-        .with({ baseUrl: 'https://this-domain-will-cause-dns-error.com' })
-        .get('/pet/findByStatus')
-        .send({ signal: abortController.signal })
-        .catch(() => {});
+      expect(() =>
+        client
+          .with({ baseUrl: 'https://this-domain-will-cause-dns-error.com' })
+          .get('/pet/findByStatus')
+          .send({ signal: abortController.signal })
+      ).rejects.toThrowErrorMatchingSnapshot();
       expect(mockedRealFetch).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('Failed condition', () => {
     test('Will retry if retries > 0', async () => {
-      const mockedFetcherWith500Response: Mock<Fetcher> = mock(
-        fetcherWith500Response
-      );
+      const mockedFetcherWith500Response = vi
+        .fn()
+        .mockImplementation(fetcherWith500Response);
       const client = mockedClient.with({
         fetcher: mockedFetcherWith500Response,
         retries: 1,
@@ -372,9 +367,9 @@ describe('Retries', () => {
     });
 
     test('Wont retry if retries = 0', async () => {
-      const mockedFetcherWith500Response: Mock<Fetcher> = mock(
-        fetcherWith500Response
-      );
+      const mockedFetcherWith500Response = vi
+        .fn()
+        .mockImplementation(fetcherWith500Response);
       const client = mockedClient.with({
         fetcher: mockedFetcherWith500Response,
         retries: 0,
@@ -388,9 +383,9 @@ describe('Retries', () => {
 
   describe('Passed condition', () => {
     test('Wont retry if retries > 0', async () => {
-      const mockedFetcherWith200Response: Mock<Fetcher> = mock(
-        fetcherWith200Response
-      );
+      const mockedFetcherWith200Response = vi
+        .fn()
+        .mockImplementation(fetcherWith200Response);
       const client = mockedClient.with({
         fetcher: mockedFetcherWith200Response,
         retries: 1,
@@ -402,9 +397,9 @@ describe('Retries', () => {
     });
 
     test('Wont retry if retries = 0', async () => {
-      const mockedFetcherWith200Response: Mock<Fetcher> = mock(
-        fetcherWith200Response
-      );
+      const mockedFetcherWith200Response = vi
+        .fn()
+        .mockImplementation(fetcherWith200Response);
       const client = mockedClient.with({
         fetcher: mockedFetcherWith200Response,
         retries: 0,
@@ -418,7 +413,7 @@ describe('Retries', () => {
 
   describe('Middlewares', () => {
     test('Called once for thrown retries', async () => {
-      const middleware: Mock<MiddlewareFunction> = mock((url, init, next) => {
+      const middleware = vi.fn().mockImplementation((url, init, next) => {
         return next(url, init);
       });
 
@@ -436,7 +431,7 @@ describe('Retries', () => {
       expect(middleware).toHaveBeenCalledTimes(1);
     });
     test('Called once for status retries', async () => {
-      const middleware: Mock<MiddlewareFunction> = mock((url, init, next) => {
+      const middleware = vi.fn().mockImplementation((url, init, next) => {
         return next(url, init);
       });
 

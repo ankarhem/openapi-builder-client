@@ -1,3 +1,4 @@
+import { expect } from 'vitest';
 import type { paths } from '../openapi/petstore';
 import { Client, Fetcher } from '../src';
 import { htmlFormatter } from '../src/formatters';
@@ -17,4 +18,8 @@ export function debugFetcher(url: string, init: RequestInit) {
     console.log(r);
     return r;
   });
+}
+
+export function invariant(value: any): asserts value {
+  expect(value).toBeTruthy();
 }
