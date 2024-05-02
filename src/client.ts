@@ -1,5 +1,5 @@
-import { OwnedFetcher } from './fetcher';
-import { OwnedRequest } from './request';
+import { OwnedFetcher } from './fetcher.js';
+import { OwnedRequest } from './request.js';
 import type {
   ClientOptions,
   DeletePaths,
@@ -9,7 +9,7 @@ import type {
   PatchPaths,
   PostPaths,
   PutPaths,
-} from './types';
+} from './types.js';
 
 export class Client<OpenAPIPaths> {
   private options: ClientOptions;

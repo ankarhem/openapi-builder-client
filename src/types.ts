@@ -10,7 +10,7 @@ import type {
   Simplify,
   ValueOf,
 } from 'type-fest';
-import { OwnedRequest } from './request';
+import { OwnedRequest } from './request.js';
 
 export type Method = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
