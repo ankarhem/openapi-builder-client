@@ -84,6 +84,7 @@ export class Client<OpenAPIPaths> {
           this.options.formFormatter(state.body) as any
         );
       case 'application/json':
+      case 'application/problem+json':
       default:
         return JSON.stringify(state.body);
     }

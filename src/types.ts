@@ -51,7 +51,8 @@ export type PatchPaths<OpenAPIPaths> = OmitNever<{
 type JsonResponseOf<Path, Code extends keyof Get<Path, 'responses'>> = Get<
   Get<Path, 'responses'>[Code],
   'content.application/json'
->;
+> &
+  Get<Get<Path, 'responses'>[Code], 'content.application/problem+json'>;
 
 export type ResponseOf<Path> = Simplify<
   ValueOf<

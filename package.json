@@ -1,6 +1,6 @@
 {
   "name": "openapi-builder-client",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -27,7 +27,7 @@
   },
   "scripts": {
     "generate": "npx openapi-typescript https://petstore3.swagger.io/api/v3/openapi.json --output ./openapi/petstore.ts",
-    "prepublishOnly": "bun run build && bun test && bun run lint",
+    "prepublishOnly": "bun run build && bun run test --run && bun run lint",
     "typecheck": "tsc -b",
     "lint": "bunx oxlint@latest && npx publint",
     "build": "rm -rf dist && tsc -p tsconfig.build.json",
