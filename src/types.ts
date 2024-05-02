@@ -112,7 +112,7 @@ export type FetcherOptions = {
 export type ClientOptions = Simplify<
   FetcherOptions & {
     baseUrl: string;
-    headers?: Record<string, string>;
+    headers?: Record<string, string | undefined>;
     formFormatter: FormFormatter;
   }
 >;
@@ -160,7 +160,7 @@ export type NextOwnedRequest<Path, UsedMethods extends string> = Exclude<
 export interface OwnedRequestState {
   path: Record<string, string | number>;
   query: Record<string, any>;
-  headers: Record<string, string>;
+  headers: Record<string, string | undefined>;
   body: Record<string, any> | undefined;
   extras?: Pick<RequestInit, 'signal'>;
 }

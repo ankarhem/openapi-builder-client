@@ -115,9 +115,7 @@ describe('Headers', () => {
     client
       .with({
         fetcher: async (url, init) => {
-          expect(init?.headers).toEqual({
-            'x-default': 'header',
-          });
+          expect(init?.headers).toMatchSnapshot();
           return new Response();
         },
       })
@@ -135,9 +133,7 @@ describe('Headers', () => {
     client
       .with({
         fetcher: async (url, init) => {
-          expect(init?.headers).toEqual({
-            api_key: 'abcd',
-          });
+          expect(init?.headers).toMatchSnapshot();
           return new Response();
         },
       })
@@ -159,10 +155,7 @@ describe('Headers', () => {
     client
       .with({
         fetcher: async (url, init) => {
-          expect(init?.headers).toEqual({
-            'x-default': 'header',
-            api_key: 'abcd',
-          });
+          expect(init?.headers).toMatchSnapshot();
           return new Response();
         },
       })

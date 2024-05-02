@@ -1,3 +1,55 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`Headers > Can add additional header per request 1`] = `
+Headers {
+  Symbol(headers list): HeadersList {
+    "cookies": null,
+    Symbol(headers map): Map {
+      "x-default" => {
+        "name": "x-default",
+        "value": "header",
+      },
+      "api_key" => {
+        "name": "api_key",
+        "value": "abcd",
+      },
+    },
+    Symbol(headers map sorted): null,
+  },
+  Symbol(guard): "none",
+}
+`;
+
+exports[`Headers > Can override default header 1`] = `
+Headers {
+  Symbol(headers list): HeadersList {
+    "cookies": null,
+    Symbol(headers map): Map {
+      "api_key" => {
+        "name": "api_key",
+        "value": "abcd",
+      },
+    },
+    Symbol(headers map sorted): null,
+  },
+  Symbol(guard): "none",
+}
+`;
+
+exports[`Headers > Can set default headers 1`] = `
+Headers {
+  Symbol(headers list): HeadersList {
+    "cookies": null,
+    Symbol(headers map): Map {
+      "x-default" => {
+        "name": "x-default",
+        "value": "header",
+      },
+    },
+    Symbol(headers map sorted): null,
+  },
+  Symbol(guard): "none",
+}
+`;
+
 exports[`Retries > Thrown requests > Wont retry if request aborted 1`] = `[AbortError: This operation was aborted]`;

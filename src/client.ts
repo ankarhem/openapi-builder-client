@@ -60,13 +60,22 @@ export class Client<OpenAPIPaths> {
 
     const url = new URL(combinedPath, this.options.baseUrl).toString();
 
+    const headers = new Headers();
+    for (const [key, value] of Object.entries(this.options.headers || {})) {
+      if (value !== undefined) {
+        headers.set(key, value);
+      }
+    }
+    for (const [key, value] of Object.entries(state.headers || {})) {
+      if (value !== undefined) {
+        headers.set(key, value);
+      }
+    }
+
     const init: RequestInit = {
       method: method,
       body: this.encodeBody(state),
-      headers: {
-        ...this.options.headers,
-        ...state.headers,
-      },
+      headers: headers,
       ...state.extras,
     };
 
